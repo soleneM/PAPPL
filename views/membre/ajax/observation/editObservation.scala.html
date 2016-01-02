@@ -1,0 +1,73 @@
+@(obs: Observation)
+@import views.html.membre.ajax.informationsComplementaires.editInformationsComplementaires
+<tr id="observation-@obs.observation_id">
+	<td>
+		<!-- photo de l'espèce-->
+		<div id="photo-@obs.observation_id" style="display: inline-block; vertical-align:top;"></div>
+		
+		<!-- groupe -->
+		<select id="groupes-@obs.observation_id" onChange="rafraichirListeDEspeces(@obs.observation_id)" size="1">
+		@for(groupe <- Groupe.findAll()){
+			<option value="@groupe.groupe_id" @if(groupe.groupe_id==obs.observation_espece.getGroupe().groupe_id){selected}>@groupe.groupe_nom</option>
+		}
+		</select><br>
+		<span style="margin-left: 20px;"> &times; </span>
+		
+		<!-- espèce -->
+		<select onClick="rafraichirPhoto(@obs.observation_id)" id="especes-@obs.observation_id" name="espece-@obs.observation_id" size="1">
+			@for(espece <- Groupe.find.where().eq("groupe_id",obs.observation_espece.getGroupe().groupe_id).findUnique().getEspecesInThisByAlpha()){
+				<option value="@espece.espece_id" @if(espece.espece_id==obs.observation_espece.espece_id){selected}>@espece.espece_nom</option>
+			}
+		</select>
+
+	</td>
+
+	<td id="complements-@obs.observation_id" class="complements">
+		@for(info <- obs.getInfos()){
+			<div id="complement-@obs.observation_id-@info.informations_complementaires_id">
+				@editInformationsComplementaires(obs.observation_id.toString(), info , obs.observation_espece.getGroupe())
+			</div>
+		}
+		<span id="apresDernierComplement-@obs.observation_id">
+			<input type="hidden" id="nbComplements-@obs.observation_id" name="nbComplements-@obs.observation_id" value="@obs.getInfos().size()" />
+			<input type="hidden" id="listeComplements-@obs.observation_id" name="listeComplements-@obs.observation_id" value="" />
+		</span>
+		<button onClick="ajouterComplement(@obs.observation_id);return false;">+</button>
+	</td>
+	<td><input type="text" name="determinateur-@obs.observation_id" placeholder="Déterminateur" size="10" value="@obs.observation_determinateur"></td>
+	<td><input type="text" name="commentaires-@obs.observation_id" placeholder="Commentaire" size="20" value="@obs.observation_commentaires"></td>
+	<td>
+		<i>
+			n°@obs.observation_id -
+
+			<!-- TODO clarifier les status de validation des observations -->
+			@if(obs.observation_validee==Observation.VALIDEE){
+				Validée le :
+				@if(obs.observation_date_validation!=null){
+					@obs.observation_date_validation.getTime().format("dd/MM/yyyy")
+				} else {?}
+			} else {
+				@if(obs.observation_validee==Observation.EN_SUSPEND) {
+					A vérifier
+				} else {
+					@if(obs.observation_validee == Observation.NON_VALIDEE && !obs.observation_vue_par_expert) {
+						En attente de validation
+					} else {
+						@if(obs.observation_validee == Observation.NON_VALIDEE && obs.observation_vue_par_expert) {Refusée par l'expert}
+					}
+				}
+			}
+			<br>
+			Dernière modif. :
+			@if(obs.observation_date_derniere_modification!=null){
+				@obs.observation_date_derniere_modification.getTime().format("dd/MM/yyyy")
+			} else {?} <br>
+		</i>
+	</td>
+	<td>
+		<input type="hidden" id="idObservation-@obs.observation_id" name="idObservation-@obs.observation_id" value="" />
+
+		@* TODO ajouter des conditions : quand est ce que l'observation peut être supprimée? *@
+		<button onClick="supprimerObservation(@obs.observation_id);return false;"><img src="/assets/images/poubelle.png" height="20px" /></button>
+	</td>
+</tr>

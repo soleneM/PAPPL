@@ -1,0 +1,300 @@
+@import views.html.admin.organisationLocale.organisationLocale
+
+@main("Gérer les groupes") {
+
+
+    <a href="/menuAdmin">Retour</a><br>
+    <h1>Gestion de l'organisation locale</h1>
+
+    <!-- PANNEAU D'EDITION-->
+    <div id="editPanel">
+        <p style="font-size: small">
+            Cliquez sur un groupement pour afficher/cacher les éléments qu'il contient. <br>
+            Double cliquez sur un groupement ou une espèce pour l'éditer.
+        </p>
+    </div>
+
+    <button onclick="hideShowAll()"> Réduire/déplier tout </button> &nbsp; | &nbsp;
+    <button onclick="newGroupement()"> Nouveau groupe/sous-groupe </button>
+
+    <div id="content">
+        @organisationLocale()
+    </div>
+
+
+}{
+
+
+    <script type="text/javascript">
+
+        $( document ).ready(function(){
+            initClicks();
+        });
+
+        /******* gestion des clicks et double clicks pour les groupements scientifiques et les espèces ******/
+
+        var DELAY = 300, clicks = 0, timer = null;
+        var hidden = false;
+
+
+        function initClicks(){
+
+            $(".groupement").on("click", function(e){
+                clicks++;  //count clicks
+                if(clicks === 1) {
+                var $this = this;
+                timer = setTimeout(function() {
+
+                    // SINGLE CLICK ACTION
+                    hideShowFils($this.id);
+
+                    clicks = 0;             //after action performed, reset counter
+                    }, DELAY);
+                } else {
+                    clearTimeout(timer);    //prevent single-click action
+
+                    // DOUBLE CLICK ACTION
+                    editGroupement(this.id);
+
+                    clicks = 0;             //after action performed, reset counter
+                }
+            })
+
+            $(".groupement").on("dblclick", function(e){
+                e.preventDefault();  //cancel system double-click event
+            });
+        }
+
+        /****** cacher et afficher contenu *********/
+
+        function hideShowFils(groupement_id){
+            if($ ( '#groupement-' + groupement_id + '-container' ).is(':visible')) {
+                $ ( '#groupement-' + groupement_id + '-container' ).hide ( ) ;
+            }
+            else {
+                $ ( '#groupement-' + groupement_id + '-container' ).show ( ) ;
+            }
+        }
+        function hideShowAll() {
+            if (hidden) {
+                $ ( '#hierarchie .container' ).each ( function ( i, obj ) {
+                    $ ( this ).show ( );
+                    hidden = false;
+                } ) ;
+            } else {
+                $ ( '#hierarchie .container' ).each ( function ( i, obj ) {
+                    $ ( this ).hide ( );
+                    hidden = true;
+                } ) ;
+            }
+        }
+
+        /******* éditer les groupements *******/
+
+        function editGroupement(groupement_id){
+            $ ( '#editPanel' ).html ( 'Chargement...' ) ;
+            $.ajax ( {
+                type : 'GET',
+                url : '/gererOrganisationLocale/editGroupementLocal/'+groupement_id,
+                success : function ( res ) {
+                    $ ( '#editPanel' ).html ( res ) ;
+                },
+                error : function ( ) {
+                    rapportDErreur ( ) ;
+                }
+            } ) ;
+        }
+        function submitEditGroupement(groupement_id){
+            var dataForm =  $( '#editGroupementLocalForm' ).serialize();
+            $ ( '#editPanel' ).html ( 'Chargement...' ) ;
+            $.ajax ( {
+                type : 'POST',
+                url : '/gererOrganisationLocale/editGroupementLocal/'+groupement_id,
+                data: dataForm,
+                success : function ( res ) {
+                    $ ( '#editPanel' ).html ( res ) ;
+                    refreshOrganisation();
+                },
+                error : function ( ) {
+                    rapportDErreur ( ) ;
+                }
+            } ) ;
+        }
+        function deleteGroupement(groupement_id){
+            var conf = confirm("Voulez vous vraiment supprimer ce groupe? (cette action est irremédiable)");
+            if (conf == true ){
+                $ ( '#editPanel' ).html ( 'Chargement...' ) ;
+                $.ajax ( {
+                    type : 'POST',
+                    url : '/gererOrganisationLocale/deleteGroupementLocal/'+groupement_id,
+                    success : function ( res ) {
+                    $ ( '#editPanel' ).html ( res ) ;
+                        refreshOrganisation();
+                    },
+                    error : function ( ) {
+                        rapportDErreur ( ) ;
+                    }
+                } ) ;
+            }
+        }
+
+        /******* ajouter un groupement *******/
+
+        function newGroupement(){
+            $ ( '#editPanel' ).html ( 'Chargement...' ) ;
+            $.ajax ( {
+                type : 'GET',
+                url : '/gererOrganisationLocale/newGroupementLocal',
+                success : function ( res ) {
+                    $ ( '#editPanel' ).html ( res ) ;
+                },
+                error : function ( ) {
+                    rapportDErreur ( ) ;
+                }
+            } ) ;
+        }
+        function submitNewGroupement(){
+            var dataForm =  $( '#newGroupementLocalForm' ).serialize();
+            $ ( '#editPanel' ).html ( 'Chargement...' ) ;
+            $.ajax ( {
+                type : 'POST',
+                url : '/gererOrganisationLocale/newGroupementLocal',
+                data: dataForm,
+                success : function ( res ) {
+                    $ ( '#editPanel' ).html ( res ) ;
+                    refreshOrganisation();
+                },
+                error : function ( ) {
+                    rapportDErreur ( ) ;
+                }
+            } ) ;
+        }
+
+
+        /******* refresh organisation *******/
+
+        function refreshOrganisation(){
+            $ ( '#content' ).html ( 'Chargement...' ) ;
+            $.ajax ( {
+                type : 'GET',
+                url : '/gererOrganisationLocale/organisationLocale',
+                success : function ( res ) {
+                    $ ( '#content' ).html ( res ) ;
+                    $(document ).ready(function() {
+                    initClicks ( ) ;
+                    });
+                },
+                error : function ( ) {
+                    rapportDErreur ( ) ;
+                }
+            } ) ;
+        }
+        
+        /******* éditer les espèces *******/
+
+        function editEspece(espece_id){
+            $ ( '#editPanel' ).html ( 'Chargement...' ) ;
+            $.ajax ( {
+                type : 'GET',
+                url : '/gererOrganisationLocale/editEspece/'+espece_id,
+                success : function ( res ) {
+                    $ ( '#editPanel' ).html ( res ) ;
+                },
+                error : function ( ) {
+                    rapportDErreur ( ) ;
+                }
+            } ) ;
+        }
+        
+        function changerPhoto(espece_id){
+            var dataForm =  $( '#editEspeceForm' ).serialize();
+            $ ( '#editPanel' ).html ( 'Chargement...' ) ;
+            $.ajax ( {
+                type : 'POST',
+                url : '/gererOrganisationLocale/changerImage/'+espece_id,
+                data: dataForm,
+                success : function ( res ) {
+                    $ ( '#editPanel' ).html ( res ) ;
+                    refreshOrganisation();
+                },
+                error : function ( ) {
+                    rapportDErreur ( ) ;
+                }
+            } ) ;
+        }
+        
+        function submitEditEspece(espece_id){
+            var dataForm =  $( '#editEspeceForm' ).serialize();
+            $ ( '#editPanel' ).html ( 'Chargement...' ) ;
+            $.ajax ( {
+                type : 'POST',
+                url : '/gererOrganisationLocale/editEspece/'+espece_id,
+                data: dataForm,
+                success : function ( res ) {
+                    $ ( '#editPanel' ).html ( res ) ;
+                    refreshOrganisation();
+                },
+                error : function ( ) {
+                    rapportDErreur ( ) ;
+                }
+            } ) ;
+        }
+
+
+        /******* refresh organisation *******/
+
+        function refreshOrganisation(){
+            $ ( '#content' ).html ( 'Chargement...' ) ;
+            $.ajax ( {
+                type : 'GET',
+                url : '/gererOrganisationLocale/organisationLocale',
+                success : function ( res ) {
+                    $ ( '#content' ).html ( res ) ;
+                    $(document ).ready(function() {
+                    initClicks ( ) ;
+                    });
+                },
+                error : function ( ) {
+                    rapportDErreur ( ) ;
+                }
+            } ) ;
+        }
+
+
+        /******* message erreur ajax *******/
+
+        function rapportDErreur(){
+            $('#editPanel').html('Un problème est survenu côté serveur...');
+        }
+
+    </script>
+
+
+    <!-- STYLE -->
+
+    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/gestionOrganisations.css")">
+    <style type="text/css">
+
+        #editPanel{
+            width: 80%;
+            min-height: 200px;;
+            border: solid 1px gray;
+            margin: 10px;
+            padding: 10px;
+        }
+        #hierarchie{
+            display: inline-block;
+            width: 60%;
+        }
+        #unclassed{
+            display: inline-block;
+            vertical-align: top;
+            width: 30%;
+            padding: 10px;
+            margin: 10px;
+            border: solid 1px gray;
+        }
+
+    </style>
+
+}

@@ -1,0 +1,27 @@
+@(listeFils : List[GroupementScientifique], expanded : Boolean)
+
+
+<!-- Fils -->
+@for(fils <- listeFils) {
+    <div class="element" id="groupement-@fils.groupement_scientifique_id">
+        <span class="typeGroupement">@fils.groupement_scientifique_type.intitule</span><br>
+        <div class="groupement" id="@fils.groupement_scientifique_id">@fils</div>
+    </div>
+
+    <div class="container level" id="groupement-@fils.groupement_scientifique_id-container" @if(!expanded){style="display: none;"}>
+
+            <!-- PETITS FILS -->
+        @this(fils.getFils(), expanded)
+
+            <!-- ESPECES -->
+        @for(espece <- fils.getEspecesInThis()) {
+            <div class="element">
+                <span class="typeGroupement">espèce</span><br>
+                <div class="espece" id="espece-@espece.espece_id" ondblclick="editEspece('@espece.espece_id')">@espece.espece_nom</div>
+            </div>
+        }
+        @if(fils.getEspecesInThis().isEmpty() && fils.getFils().isEmpty()){
+            <p class="element empty">(Groupement vide)</p>
+        }
+    </div>
+}

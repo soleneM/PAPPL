@@ -1,0 +1,126 @@
+@*********************************************************************************
+ * 
+ *   Copyright 2014 BOUSSEJRA Malik Olivier, HALDEBIQUE Geoffroy, ROYER Johan
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   
+ ********************************************************************************@
+@(listObservation :List[Observation], groupe :Groupe)
+
+ @main("Témoignages à valider"){
+
+ <a href="/menuExpert">Retour</a><br>
+<h1>Témoignages à valider</h1>
+<span id="editObservation"></span>
+        <table>
+        	<tr>
+        		<th>Témoins</th>
+        		<th>Mail</th>
+        		<th>Espèce</th>
+        		<th>Déterminateur</th>
+        		<th>Commentaires</th>
+        		<th>Date Minimum<br/>(intervalle)</th>
+        		<th>Date d'observation</th>
+        		<th>Lieu-dit</th>
+        		<th>Commune</th>
+        		<th>UTMS</th>
+        		<th>Memo</th>
+        		<th>Soumission</th>
+        		<th>Informations</th>
+        		<th>Dernière modification</th>
+        		<th>Numéro</th>
+        		<th colspan="3">Actions</th>
+        	</tr>
+        	@for(observation <- listObservation) {
+        	<tr id="editObservation@observation.observation_id" valign="top">
+        		<td>@for(ficheHasMembre <-observation.observation_fiche.getFicheHasMembre()){ @ficheHasMembre.membre} 
+        		</td>
+        		<td>@for(ficheHasMembre <-observation.observation_fiche.getFicheHasMembre()){ @ficheHasMembre.membre.membre_email} 
+        		</td>
+        		<td>@observation.observation_espece.espece_nom</td>
+        		<td>@observation.observation_determinateur</td>
+        		<td>@observation.observation_commentaires</td>
+        		<td>@if(observation.observation_fiche.fiche_date_min!=null){@observation.observation_fiche.fiche_date_min.getTime().format("dd/MM/yyyy")}</td>
+        		<td>@observation.observation_fiche.fiche_date.getTime().format("dd/MM/yyyy")</td>
+        		<td>@observation.observation_fiche.fiche_lieudit</td>
+        		<td>@if(observation.observation_fiche.fiche_commune!=null){@observation.observation_fiche.fiche_commune.ville_nom_reel}</td>
+        		<td>@if(observation.observation_fiche.fiche_utm!=null){@observation.observation_fiche.fiche_utm.utm}else{<i>à déterminer</i>}</td>
+        		<td>@observation.observation_fiche.fiche_memo</td>
+        		<td>@observation.observation_fiche.fiche_date_soumission.getTime().format("dd/MM/yyyy")</td>
+        		<td>@for(informationsComplementaires <-observation.getInfos()){
+        			@if(informationsComplementaires.informations_complementaires_nombre_de_specimens!=null){@informationsComplementaires.informations_complementaires_nombre_de_specimens,&nbsp;}
+        			@informationsComplementaires.informations_complementaires_stade_sexe<br>
+        			} </td>
+        		<td>@observation.observation_date_derniere_modification.getTime().format("dd/MM/yyyy")</td>
+   				<td>@observation.observation_id</td>
+				<td>@if(!observation.observation_vue_par_expert){<form action="/temoignagesAValider/vu/@observation.observation_espece.getGroupe().groupe_id/@observation.observation_id" method="POST">
+        		<button type="submit">Marquer comme vu</button></form>
+        		}else{@if(observation.estEnSuspend()){<form id="valide@observation.observation_id" action="/temoignagesAValider/valide/@observation.observation_espece.getGroupe().groupe_id/@observation.observation_id" method="POST">
+        		<input type="button" onclick="confirmValider(@observation.observation_id)" value="Valider"></form>}else{}}</td>
+        		<td>@if(observation.estEnSuspend()){
+        		<button type="button" onclick="edite(@observation.observation_id, @groupe.groupe_id)">editer</button>}else{}
+				</td>
+        		<td>@if(observation.estEnSuspend()){
+        		<form id="supprime@observation.observation_id" action="/temoignagesAValider/supprime/@observation.observation_espece.getGroupe().groupe_id/@observation.observation_id" method="POST">
+        		<button onclick="return confirmSupprimer(@observation.observation_id);"><img src="/assets/images/poubelle.png" height="15px" /></button>
+				</form>}else{}</td>
+        	</tr>}
+        </table>
+    
+        		
+}{<link rel="stylesheet" href="@routes.Assets.at("stylesheets/jquery-ui-1.10.4.custom.min.css")">
+ <script type="text/javascript" src="/assets/javascripts/jquery-ui-1.10.4.custom.min.js"></script>
+ <script>
+function edite(observation_id, groupe_id){
+		$.ajax({
+			url : '/listeDesCommunes/communeObservation'+observation_id,
+			success: function(res){
+			$('#editObservation').load('/temoignagesAValider/edite/'+groupe_id+'/'+observation_id, function(){
+				$('#commune'+observation_id).html(res);
+			});
+			}
+	});
+}
+function ajoutInfo(){
+document.getElementById("nouvelleinfo").innerHTML='<input type="text" name="infonew" value="1" style="display:none;">';
+document.getElementById("nouvelleInfoValidee").innerHTML='Une nouvelle information à été créée, rééditez cette observation pour la préciser.';
+}
+function confirmValider(observation_id){
+	var r=confirm("Etes-vous sûr de valider cette observation?");
+	if(r==true)
+		{
+		document.getElementById("valide"+observation_id).submit();
+		}
+		else
+		{}
+	}
+function confirmEditer(observation_id){
+
+	var r=confirm("Etes-vous sûr des Changements effectués sur cette observation?");
+	if(r==true)
+		{
+		document.getElementById("edite"+observation_id).submit();
+		}
+		else
+		{}
+	}
+function confirmSupprimer(observation_id){
+	var r=confirm("Etes-vous sûr de vouloir supprimer cette observation?");
+	if(r==true)
+		{
+		document.getElementById("supprime"+observation_id).submit();
+		}
+		else
+		{}
+}
+</script>}

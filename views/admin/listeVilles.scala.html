@@ -1,0 +1,63 @@
+@*********************************************************************************
+ * 
+ *   Copyright 2014 BOUSSEJRA Malik Olivier, HALDEBIQUE Geoffroy, ROYER Johan
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   
+ ********************************************************************************@
+@main("Liste des communes"){
+<h1>Liste des communes</h1>
+<a href="/menuAdmin">Retour</a><br>
+<table>
+<tr>
+	<th>Nom réel</th>
+	<th>Nom AER</th>
+	<th>Département</th>
+</tr>
+@for(commune <- Commune.findAll()){
+<tr>
+	<td>@commune.ville_nom_reel</td>
+	<td><span id="commune@commune.ville_id" onDblClick="renommeCommune(@commune.ville_id)">@commune.ville_nom_aer</span></td>
+	<td>@commune.ville_departement.departement_code</td>
+</tr>
+}
+</table>
+}{
+<script>
+function renommeCommune(ville_id){
+	var ancienNom = $('#commune'+ville_id).html();
+	$('#commune'+ville_id).replaceWith('<input type="text" id="renommer'+ville_id+'" value="'+ancienNom+'">');
+	$('#renommer'+ville_id).keyup(function(event){
+		if(event.keyCode == 13){
+			var formdata = new FormData();
+			var nouveauNom = $('#renommer'+ville_id).val();
+			if(nouveauNom=='')
+				alert('Vous avez laissé le champ vide !');
+			else{
+				formdata.append('nouveauNom',nouveauNom);
+				$.ajax({
+					type : 'POST',
+					url : '/ajax/ville/renommer/'+ville_id,
+					data: formdata,
+					processData: false,
+					contentType: false,
+					success: function (res) {
+						$('#renommer'+ville_id).replaceWith('<span id="commune'+ville_id+'" onDblClick="renommeCommune('+ville_id+')">'+nouveauNom+'</span>');
+					}
+				});
+			}
+		}
+	});
+}
+</script>
+}

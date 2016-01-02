@@ -1,0 +1,83 @@
+@*********************************************************************************
+ * 
+ *   Copyright 2014 BOUSSEJRA Malik Olivier, HALDEBIQUE Geoffroy, ROYER Johan
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   
+ ********************************************************************************@
+@(groupe: Groupe)
+@main("Gérer l'arborescence des stades et des sexes"){
+	<h1>Gérer les sexes et les stades du groupe @groupe</h1>
+	<table>
+	@for(stadeSexe1 <- groupe.getStadeSexePeres()){
+	<tr>
+		<td>@stadeSexe1</td>
+		<td>
+			<button id="nouveauStadeFils@stadeSexe1.stade_sexe_id" onClick="nouveauStadeFils(@stadeSexe1.stade_sexe_id,@{stadeSexe1.getStadeSexeFilsPourTelGroupe(groupe).size()+1})">Ajouter un stade/sexe subordonné à ce stade/sexe</button>
+			<button onclick="supprimerPere(@stadeSexe1.stade_sexe_id)">Supprimer ce stade</button>
+		</td>
+	</tr>
+		@for(stadeSexe2 <- stadeSexe1.getStadeSexeFilsPourTelGroupe(groupe)){
+		<tr>
+			<td></td><td>@stadeSexe2<button onclick="supprimerFils(@stadeSexe2.stade_sexe_id)">Supprimer ce stade</button></td>
+		</tr>
+		}
+	}
+	</table>
+	<button id="nouveauStadePere" onClick="nouveauStadePere()">Ajouter un stade/sexe père</button>
+<a href="/menuExpert">Retour</a>
+<div style="display:none">
+	<select name="stade" id="selectStades">
+		@for(stade <- StadeSexe.findAll()){
+		<option value="@stade.stade_sexe_id">@stade</option>
+		}
+	</select>
+	<form id="form" method="POST" action="">
+		<input id="form_stade_sexe" name="stade_sexe" type="text">
+		<input id="position" name="position" type="text">
+	</form>
+</div>
+}{
+<script>
+function nouveauStadePere(){
+	$('#nouveauStadePere').replaceWith('<select id="selectPere">'+$('#selectStades').html()+'</select><button onClick="ajouterPere()">Ajouter</button>');
+}
+function ajouterPere(){
+	$('#form_stade_sexe').val($('#selectPere').val());
+	$('#position').val('@{groupe.getStadeSexePeres().size()+1}');
+	$('#form').attr('action','/nouveauStadeSexe/@groupe.groupe_id');
+	$('#form').submit();
+}
+function nouveauStadeFils(stade_pere_id,position){
+	$('#nouveauStadeFils'+stade_pere_id).replaceWith('<select id="selectFils'+stade_pere_id+'">'+$('#selectStades').html()+'</select><button onClick="ajouterFils('+stade_pere_id+','+position+')">Ajouter</button>');
+}
+function ajouterFils(stade_pere_id,size){
+	$('#form_stade_sexe').val($('#selectFils'+stade_pere_id).val());
+	$('#position').val(size);
+	$('#form').attr('action','/nouveauStadeSexe/@groupe.groupe_id/'+stade_pere_id);
+	$('#form').submit();
+}
+function supprimerPere(stade_sexe_id){
+	if(confirm('Si vous supprimez ce stade, les stades fils seront aussi supprimés')){
+		$('#form').attr('action','/supprimerStadeSexePere/@groupe.groupe_id/'+stade_sexe_id);
+		$('#form').submit();
+	}
+}
+function supprimerFils(stade_sexe_id){
+	if(confirm('Si vous supprimez ce stade, les stades fils seront aussi supprimés')){
+		$('#form').attr('action','/supprimerStadeSexeFils/@groupe.groupe_id/'+stade_sexe_id);
+		$('#form').submit();
+	}
+}
+</script>
+}

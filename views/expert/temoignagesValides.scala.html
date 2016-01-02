@@ -1,0 +1,127 @@
+@*********************************************************************************
+ * 
+ *   Copyright 2014 BOUSSEJRA Malik Olivier, HALDEBIQUE Geoffroy, ROYER Johan
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   
+ ********************************************************************************@
+ @(listObservation: List[Observation], page: Integer, nbpages: Integer, groupe : Groupe, listEspeces: List[Espece], filtre: Integer, especeselectid: Integer, membreselectnom: String, orderBy: String, dir: String )
+ @main("Témoignages validés"){
+ <a href="/menuExpert">Retour</a><br>
+		<h1>Témoignages validés</h1>
+	</header>
+	<form method="POST" action="/temoignagesValides/export/@groupe.groupe_id/@especeselectid/@orderBy/@dir/@membreselectnom">
+		<button>Créer un export excel</button>
+	</form>
+	<span id="trimembre"><button onclick="triMembre(@groupe.groupe_id)">Voir les observations d'un membre: </button></span>
+	<p>Trier par espece:<select name="selespesce" onchange="triEspece(@groupe.groupe_id, this.options[this.selectedIndex].value)">
+				<option value="-1">&nbsp </option>
+				<option value="toutes"> Toutes les espèces </option>
+				@for(espece <- listEspeces){
+					<option value="@espece.espece_id">@espece.espece_nom</option>
+					}
+				</select><span id="triespece"></span></p>
+		@for( pg:Int <- 1 to nbpages){ @if(((pg>(page-5))&&(pg <(page+5)))||(pg%100==0)||(pg==nbpages)||(pg==1)){@if(filtre==0){<a href="/temoignagesValides/@groupe.groupe_id/@pg/@orderBy/@dir">p.@pg</a>}else{@if(filtre==1){<a href="/temoignagesValides/espece/@groupe.groupe_id/@especeselectid/@pg/@orderBy/@dir">p.@pg</a>}else{<a href="/temoignagesValides/membre/@groupe.groupe_id/@membreselectnom/@pg/@orderBy/@dir">p.@pg</a>}
+		}
+		}else{}}
+	 <table>
+        	<tr>
+        		<th>@if(filtre==0){<a href="/temoignagesValides/@groupe.groupe_id/@page/observation_id/desc">▼</a>}else{@if(filtre==1){<a href="/temoignagesValides/espece/@groupe.groupe_id/@especeselectid/@page/observation_id/desc">▼</a>}else{<a href="/temoignagesValides/membre/@groupe.groupe_id/@membreselectnom/@page/observation_id/desc">▼</a>}
+        			}Id
+        			@if(filtre==0){<a href="/temoignagesValides/@groupe.groupe_id/@page/observation_id/asc">▲</a>}else{@if(filtre==1){<a href="/temoignagesValides/espece/@groupe.groupe_id/@especeselectid/@page/observation_id/asc">▲</a>}else{<a href="/temoignagesValides/membre/@groupe.groupe_id/@membreselectnom/@page/observation_id/asc">▲</a>}
+        		}</th>
+        		<th>Témoins</th>
+        		<th>@if(filtre==0){<a href="/temoignagesValides/@groupe.groupe_id/@page/observation_espece.espece_id/desc">▼</a>}else{@if(filtre==1){<a href="/temoignagesValides/espece/@groupe.groupe_id/@especeselectid/@page/observation_espece.espece_id/desc">▼</a>}else{<a href="/temoignagesValides/membre/@groupe.groupe_id/@membreselectnom/@page/observation_espece.espece_id/desc">▼</a>}
+        			}Espèce
+        			@if(filtre==0){<a href="/temoignagesValides/@groupe.groupe_id/@page/observation_espece.espece_id/asc">▲</a>}else{@if(filtre==1){<a href="/temoignagesValides/espece/@groupe.groupe_id/@especeselectid/@page/observation_espece.espece_id/asc">▲</a>}else{<a href="/temoignagesValides/membre/@groupe.groupe_id/@membreselectnom/@page/observation_espece.espece_id/asc">▲</a>}
+        		}</th>
+        		<th>Déterminateur</th>
+        		<th>Commentaires</th>
+        		<th>Date Minimum(intervalle)</th>
+        		<th>@if(filtre==0){<a href="/temoignagesValides/@groupe.groupe_id/@page/observation_fiche.fiche_date/desc">▼</a>}else{@if(filtre==1){<a href="/temoignagesValides/espece/@groupe.groupe_id/@especeselectid/@page/observation_fiche.fiche_date/desc">▼</a>}else{<a href="/temoignagesValides/membre/@groupe.groupe_id/@membreselectnom/@page/observation_fiche.fiche_date/desc">▼</a>}
+        			}Date d'observation
+        			@if(filtre==0){<a href="/temoignagesValides/@groupe.groupe_id/@page/observation_fiche.fiche_date/asc">▲</a>}else{@if(filtre==1){<a href="/temoignagesValides/espece/@groupe.groupe_id/@especeselectid/@page/observation_fiche.fiche_date/asc">▲</a>}else{<a href="/temoignagesValides/membre/@groupe.groupe_id/@membreselectnom/@page/observation_fiche.fiche_date/asc">▲</a>}
+        		}</th>
+        		<th>Lieu-dit</th>
+        		<th>Commune</th>
+        		<th>UTM</th>
+        		<th>Memo</th>
+        		<th>@if(filtre==0){<a href="/temoignagesValides/@groupe.groupe_id/@page/observation_fiche.fiche_date_soumission/desc">▼</a>}else{@if(filtre==1){<a href="/temoignagesValides/espece/@groupe.groupe_id/@especeselectid/@page/observation_fiche.fiche_date_soumission/desc">▼</a>}else{<a href="/temoignagesValides/membre/@groupe.groupe_id/@membreselectnom/@page/observation_fiche.fiche_date_soumission/desc">▼</a>}
+        			}Date de soumission
+        			@if(filtre==0){<a href="/temoignagesValides/@groupe.groupe_id/@page/observation_fiche.fiche_date_soumission/asc">▲</a>}else{@if(filtre==1){<a href="/temoignagesValides/espece/@groupe.groupe_id/@especeselectid/@page/observation_fiche.fiche_date_soumission/asc">▲</a>}else{<a href="/temoignagesValides/membre/@groupe.groupe_id/@membreselectnom/@page/observation_fiche.fiche_date_soumission/asc">▲</a>}
+        		}</th>
+        		<th>Informations supplémentaires</th>
+        		<th>@if(filtre==0){<a href="/temoignagesValides/@groupe.groupe_id/@page/observation_date_validation/desc">▼</a>}else{@if(filtre==1){<a href="/temoignagesValides/espece/@groupe.groupe_id/@especeselectid/@page/observation_date_validation/desc">▼</a>}else{<a href="/temoignagesValides/membre/@groupe.groupe_id/@membreselectnom/@page/observation_date_validation/desc">▼</a>}
+        			}Date de validation
+        			@if(filtre==0){<a href="/temoignagesValides/@groupe.groupe_id/@page/observation_date_validation/asc">▲</a>}else{@if(filtre==1){<a href="/temoignagesValides/espece/@groupe.groupe_id/@especeselectid/@page/observation_date_validation/asc">▲</a>}else{<a href="/temoignagesValides/membre/@groupe.groupe_id/@membreselectnom/@page/observation_date_validation/asc">▲</a>}
+        		}</th>
+        		<th>Remettre en suspens</th>
+        	</tr>
+        	@for(observation <- listObservation) {
+        	<tr>
+        		<td>@observation.observation_id</td>
+        		<td>@for(ficheHasMembre <-observation.observation_fiche.getFicheHasMembre()){ @ficheHasMembre.membre} 
+        		</td>
+        		<td>@observation.observation_espece.espece_nom</td>
+        		<td>@observation.observation_determinateur</td>
+        		<td>@observation.observation_commentaires</td>
+        		<td>@if(observation.observation_fiche.fiche_date_min!=null){@observation.observation_fiche.fiche_date_min.getTime().format("dd/MM/yyyy")}</td>
+        		<td>@observation.observation_fiche.fiche_date.getTime().format("dd/MM/yyyy")</td>
+        		<td>@observation.observation_fiche.fiche_lieudit</td>
+        		<td>@if(observation.observation_fiche.fiche_commune!=null){@observation.observation_fiche.fiche_commune.ville_nom_reel}</td>
+        		<td>@observation.observation_fiche.fiche_utm.utm</td>
+        		<td>@observation.observation_fiche.fiche_memo</td>
+        		<td>@observation.observation_fiche.fiche_date_soumission.getTime().format("dd/MM/yyyy")</td>
+        		<td>@for(informationsComplementaires <-observation.getInfos()){
+        			@if(informationsComplementaires.informations_complementaires_nombre_de_specimens!=null){@informationsComplementaires.informations_complementaires_nombre_de_specimens,&nbsp;}
+        			@informationsComplementaires.informations_complementaires_stade_sexe<br>
+        			} </td>
+        		<td>@observation.observation_date_validation.getTime().format("dd/MM/yyyy")</td>
+        		<td><form id="suspens@observation.observation_id" method="POST" action="/temoignagesValides/suspens/@groupe.groupe_id/@page/@observation.observation_id"><input type="button" onclick="confirmSuspens(@observation.observation_id)" value="Remettre en Suspens"></form></td>
+        		
+        	</tr>}
+        </table>
+	}{<link rel="stylesheet" href="@routes.Assets.at("stylesheets/jquery-ui-1.10.4.custom.min.css")">
+ <script type="text/javascript" src="/assets/javascripts/jquery-ui-1.10.4.custom.min.js"></script>
+ <script>
+	function confirmSuspens(observation_id){
+	var r=confirm("Etes-vous sûr de remettre cette observation en suspens?");
+	if(r==true)
+		{
+		document.getElementById("suspens"+observation_id).submit();
+		}
+		else
+		{}
+	}
+	function triEspece(groupe_id, espece_id){
+	 if (espece_id=="toutes"){document.getElementById("triespece").innerHTML='<a href="/temoignagesValides/'+groupe_id+'/1/observation_date_validation/desc"><button>Trier</button></a>'
+	 ;}else{
+	document.getElementById("triespece").innerHTML='<a href="/temoignagesValides/espece/'+groupe_id+'/'+espece_id+'/1/observation_date_validation/desc"><button>Trier</button></a>'
+	;} 
+	}
+	
+	function triMembre(groupe_id){
+		$.ajax({
+		url : '/listeDesMembres/triMembres',
+		success: function (res) {
+			$('#trimembre').html('<button onclick="launchTriMembre('+groupe_id+')">Trier</button>'+res);
+		}
+	});
+}
+	function launchTriMembre(groupe_id){
+	var membre_nom=document.getElementById('triMembres').value
+	document.getElementById('trimembre').innerHTML='<a href="/temoignagesValides/membre/'+groupe_id+'/'+membre_nom+'/1/observation_date_validation/desc"><button>Valider le tri</button></a>'
+	;}
+	</script>
+}
+

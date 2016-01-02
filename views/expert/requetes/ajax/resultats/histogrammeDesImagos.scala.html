@@ -1,0 +1,76 @@
+@*********************************************************************************
+ * 
+ *   Copyright 2014 BOUSSEJRA Malik Olivier, HALDEBIQUE Geoffroy, ROYER Johan
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   
+ ********************************************************************************@
+ @(hdi : controllers.ajax.expert.requetes.calculs.HistogrammeDesImagos, info : Map[String,String], file_name: String)
+@*Espèce : @info.get("espece")<br>
+Sous-groupe : @info.get("sous-groupe")<br>
+Groupe : @info.get("groupe")<br>
+Stade : @info.get("stade")<br>
+Maille : @info.get("maille")<br>*@
+@*<br><br>
+<table>
+@for(i:Int <- 0 to 35){
+	<tr>
+		<td>@hdi.legende.get(i)</td>
+		<td>@hdi.histogramme(i)</td>
+	</tr>
+}
+</table>*@
+<a href="/telechargerRapport/@file_name">Télécharger le fichier Excel</a>
+<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+<script>
+$(function () {
+    $('#container').highcharts({
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: '@hdi.titre'
+        },
+        subtitle: {
+            text: 'Source: AER, Nombre total d\'observations : @hdi.getSomme()'
+        },
+        xAxis: {
+            categories: [@for(i:Int <- 0 to 34){'@hdi.legende.get(i)',}'@hdi.legende.get(35)']
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'Nombre d\'observations'
+            }
+        },
+        tooltip: {
+            headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+            pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                '<td style="padding:0"><b>{point.y:.f}</b></td></tr>',
+            footerFormat: '</table>',
+            shared: true,
+            useHTML: true
+        },
+        plotOptions: {
+            column: {
+                pointPadding: 0.2,
+                borderWidth: 0
+            }
+        },
+        series: [{
+        	name: 'Nombre d\'observations',
+            data: [@for(i:Int <- 0 to 34){@hdi.histogramme(i),}@hdi.histogramme(35)]
+        }]
+    });
+});
+</script>

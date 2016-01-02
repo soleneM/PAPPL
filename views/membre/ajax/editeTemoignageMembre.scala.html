@@ -1,0 +1,114 @@
+@*********************************************************************************
+* * Copyright 2014 BOUSSEJRA Malik Olivier, HALDEBIQUE Geoffroy, ROYER
+Johan * * Licensed under the Apache License, Version 2.0 (the
+"License"); * you may not use this file except in compliance with the
+License. * You may obtain a copy of the License at * *
+http://www.apache.org/licenses/LICENSE-2.0 * * Unless required by
+applicable law or agreed to in writing, software * distributed under the
+License is distributed on an "AS IS" BASIS, * WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. * See the License for
+the specific language governing permissions and * limitations under the
+License. *
+********************************************************************************@
+@(observation: Observation)
+@defining(observation.observation_fiche.getFicheHasMembre()){ fhms =>
+		<!-- TODO à supprimer? sachant qu'on ne peut plus éditer une observation à elle toute seule ou bien l'adapter pour l'affichage par liste d'obs? -->
+<form id="edite@observation.observation_id"
+	action="/historique/editer/@observation.observation_id"
+	method="POST">
+	<table>
+		<tr>
+			<th>Fiche ID</th>
+			<th>UTM</th>
+			<th>Lieu-dit</th>
+			<th>Commune</th>
+			<th>Date min</th>
+			<th>Date</th>
+			<th>Espèce</th>
+			<th>Nombre</th>
+			<th>Stade/Sexe</th>
+			<th>
+				Témoins<br>
+				<span style="font-size:70%">(pour supprimer un témoin, laissez son champ vide)</span>
+			</th>
+			<th>Déterminateur</th>
+			<th>Mémo</th>
+		</tr>
+		<tr>
+			<td>@observation.observation_fiche.fiche_id</td>
+			<td>
+				@observation.observation_fiche.fiche_utm.utm
+				<select name="utm">
+				@for(utm <- UTMS.findAll()){
+					<option value="@utm"@if(utm.equals(observation.observation_fiche.fiche_utm)){ selected}>@utm</option>
+				}
+				</select>
+			</td>
+			<td><input type="text" name="lieudit" value="@observation.observation_fiche.fiche_lieudit"></td>
+			<td>@if(observation.observation_fiche.fiche_commune!=null){@observation.observation_fiche.fiche_commune.ville_nom_reel}
+				<span id="commune@observation.observation_id"></span>
+			</td>
+			<td>@if(observation.observation_fiche.fiche_date_min!=null){@observation.observation_fiche.fiche_date_min.getTime().format("dd/MM/yyyy")}</td>
+			<td>@observation.observation_fiche.fiche_date.getTime().format("dd/MM/yyyy")</td>
+			<td>
+				@observation.observation_espece.espece_nom
+				<select name="espece_id">
+					@for(espece <- Espece.findAllByAlpha()){
+					<option value="@espece.espece_id"@if(espece.espece_id==observation.observation_espece.espece_id){ selected}>@espece.espece_nom</option>
+				}
+				</select>
+			</td>
+			<td>
+				@for(informationsComplementaires <- observation.getInfos()){
+					<input type="text" style="width:30px" name="nombre@informationsComplementaires.informations_complementaires_id" value="@informationsComplementaires.informations_complementaires_nombre_de_specimens">
+					@if(informationsComplementaires.informations_complementaires_nombre_de_specimens==null){?}else{@informationsComplementaires.informations_complementaires_nombre_de_specimens}
+				}
+			</td>
+			<td>
+				@for(informationsComplementaires <- observation.getInfos()){
+					<select name="stadesexe@informationsComplementaires.informations_complementaires_id">
+					@for(stadesexe <- StadeSexe.findAll()){
+						<option value="@stadesexe.stade_sexe_id"@if(stadesexe.stade_sexe_id==informationsComplementaires.informations_complementaires_stade_sexe.stade_sexe_id){ selected}>
+							@stadesexe
+						</option>
+					}
+					</select>
+					@informationsComplementaires.informations_complementaires_stade_sexe
+				}
+			</td>
+			<td>
+				@for(i:Int <- 0 to (fhms.size()-1)){
+				<input type="text" name="membre_nom@i" placeholder="Nom du témoin" value="@fhms.get(i).membre.membre_nom" id="membre@i"><br>
+				}
+				<button id="boutonAjouterTemoin" onClick="ajouterTemoin();return false;">Ajouter un témoin</button>
+			</td>
+			<td><input type="text" name="determinateur" value="@observation.observation_determinateur"></td>
+			<td><textarea name="memo">@observation.observation_fiche.fiche_memo</textarea></td>
+		</tr>
+	</table>
+<button onClick="confirmEditer(@observation.observation_id);return false;">Valider les changements</button>
+</form>
+<script>
+var listeMembres = [@Html(controllers.ajax.Listes.listeMembres())];
+var nombre_temoin = @fhms.size();
+$(document).ready(function() {
+	setTimeout(function(){
+		$('#communeObservation'+@observation.observation_id).val('@if(observation.observation_fiche.fiche_commune!=null){@observation.observation_fiche.fiche_commune.ville_nom_reel}');
+		for(var i = 0 ; i<nombre_temoin ; i++){
+			$('#membre'+i).autocomplete({
+				source : listeMembres,
+				minLength: 1
+			});
+		}
+	}, 300)
+});
+function ajouterTemoin(){
+	$('#boutonAjouterTemoin').before('<input type="text" name="membre_nom'+nombre_temoin+'" placeholder="Nom du membre" id="membre'+nombre_temoin+'">');
+	$('#membre'+nombre_temoin).autocomplete({
+		source : listeMembres,
+		minLength: 1
+	});
+	nombre_temoin++;
+}
+</script>
+}

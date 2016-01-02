@@ -1,0 +1,248 @@
+@*********************************************************************************
+ * 
+ *   Copyright 2014 BOUSSEJRA Malik Olivier, HALDEBIQUE Geoffroy, ROYER Johan
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   
+ ********************************************************************************@
+@(membre: Membre, message: String, fiche: Fiche)
+@import views.html.membre.ajax.observation.editObservation
+@import views.html.membre.ajax.observation.getObservation
+@main("Fiche de Témoignage"){
+<div style="display: table; margin-right: auto; margin-left: auto;">
+		<span id="message" class="message" style="color:red;">@message</span><br>
+
+		<form id="form" action="/ficheDeTemoignage/editFiche/@fiche.fiche_id" method="POST">
+			<!-- FICHE (entete)-->
+			<div style="display: table; width: 100%;">
+				<table style=" margin-right: auto; margin-left: auto;" class="display">
+					<tr>
+						<td colspan="2" align="center">
+							@if(fiche!=null) {
+							<b>Fiche n°@fiche.fiche_id </b><br>
+							<i>initalement soumise le @if(fiche.fiche_date_soumission!=null){@fiche.fiche_date_soumission.getTime().format("dd/MM/yyyy à HH:mm")}</i>
+							}
+							@if(fiche==null) {
+							<b>Nouvelle Fiche</b><br>
+							}
+						</td>
+					</tr>
+					<tr>
+						<td>Coordonnées UTM :
+							<select name="utm">
+								<option value=""@if(fiche.fiche_utm==null){selected}>-</option>
+								@for(utm <- UTMS.findAll()){
+								<option value="@utm"@if(fiche.fiche_utm==utm){selected}>@utm</option>
+								}
+							</select>
+						</td>
+						<td>Coordonnées GPS : <input type="text" name="gps" placeholder="" @if(fiche!=null){value="@fiche.fiche_gps_coordinates"}></td>
+					</tr>
+					<tr>
+						<td>Lieu dit : <input type="text" name="lieu-dit" placeholder="Lieu-dit ou indication de lieu" @if(fiche!=null){value="@fiche.fiche_lieudit"}></td>
+						<td>Date min :
+						@if((fiche!=null)&&(fiche.fiche_date_min!=null)){
+						@defining(fiche.fiche_date_min.getTime()){ ladate =>
+							 <input type="text" name="jourmin"  value="@Integer.parseInt(ladate.format("d"))" size="3" />
+							 <input type="text" name="moismin"  value="@Integer.parseInt(ladate.format("M"))" size="3" />
+							 <input type="text" name="anneemin" value="@Integer.parseInt(ladate.format("yyyy"))" size="5" />
+						}}else{
+							 <input type="text" name="jourmin"  value="" size="3" />
+							 <input type="text" name="moismin"  value="" size="3" />
+							 <input type="text" name="anneemin" value="" size="5" />
+						}
+						</td>
+					</tr>
+					<tr>
+						<td>Commune :
+							<input type="text" name="ville_nom_reel" id="commune" placeholder="Nom de la commune" @if((fiche!=null)&&(fiche.fiche_commune!=null)){value="@fiche.fiche_commune.ville_nom_reel"}>
+						</td>
+						<td>Date :
+						@if((fiche!=null)&&(fiche.fiche_date!=null)){
+						@defining(fiche.fiche_date.getTime()){ ladate =>
+							 <input type="text" name="jour"  value="@Integer.parseInt(ladate.format("d"))" size="3" />
+							 <input type="text" name="mois"  value="@Integer.parseInt(ladate.format("M"))" size="3" />
+							 <input type="text" name="annee" value="@Integer.parseInt(ladate.format("yyyy"))" size="5" />
+						}}else{
+						@defining(Calendar.getInstance().getTime()){ ladate =>
+							 <input type="text" name="jour"  value="@Integer.parseInt(ladate.format("d"))" size="3" />
+							 <input type="text" name="mois"  value="@Integer.parseInt(ladate.format("M"))" size="3" />
+							 <input type="text" name="annee" value="@Integer.parseInt(ladate.format("yyyy"))" size="5" />
+						}}
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" id="membres">
+							Témoin(s) :
+							<button id="ajout" onClick="ajouterUnMembre();return false;" style='display:inline;'>Ajouter un témoin</button><br>
+								@for((fhm, index) <- fiche.getFicheHasMembre().zipWithIndex){
+									<div id="champMembre@(index+1)">
+										<input type="text" name="membre_nom@(index+1)" placeholder="Nom du membre" id="membre@(index+1)" value="@fhm.membre.membre_nom">
+										<button id="supprimerMembre@(index+1)" onClick="supprimerMembre('@(index+1)'); return false;"><img src="/assets/images/poubelle.png" height="15px" /></button>
+									</div>
+								}
+							<span id="apresDernierMembre"><input type="hidden" id="nombreMembres" name="nombreMembres" value="@fiche.getFicheHasMembre().size()" /></span>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" id="memo">
+							Commentaires :<br>
+							<textarea name="memo" cols="70" rows="5">@fiche.fiche_memo</textarea>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<br>
+
+			<!-- OBSERVATIONS -->
+
+			<p>Observations:</p>
+
+			<table class="table" class="display">
+				<thead>
+					<tr>
+						<th>Groupe et espèce</th>
+						<th>Spécimens par stade et sexe</th>
+						<th>Déterminateur</th>
+						<th>Mémo</th>
+						<th>Status</th>
+					</tr>
+				</thead>
+				<tbody id="observations">
+					@for(obs <- fiche.getObservations()){
+						@if(obs.estvalidee()) {
+							@if(membre.isExpert()){
+								@editObservation(obs)
+							} else {
+								@getObservation(obs)
+							}
+						} else {
+							@editObservation(obs)
+						}
+					}
+					<tr id="apresDerniereObservation">
+						<td colspan="7">
+							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onClick="newObservation();return false;">Ajouter une observation</button>
+							<input type="hidden" id="nombreObservations" name="nombreObservations" value="" />
+							<input type="hidden" id="listeObservationsEdit" name="listeObservationsEdit" value="" />
+							<input type="hidden" id="listeObservationsNew" name="listeObservationsNew" value="" />
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+		<br>
+		<!--TODO bouton annuler-->
+		<button onClick="addFicheViewPanel(@fiche.fiche_id)">Annuler</button>
+		<button onClick="poster();return false;">Enregistrer témoignage</button>
+		</form>
+	</div>
+}{
+
+<link rel="stylesheet" href="@routes.Assets.at("stylesheets/jquery-ui-1.10.4.custom.min.css")">
+<script type="text/javascript" src="@routes.Assets.at("/javascripts/jquery-ui-1.10.4.custom.min.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("/javascripts/manipulationsChampsFiche.js")"></script>
+<script>
+
+// initialisation : commune
+
+var listeCommunes = [@Html(controllers.ajax.Listes.listeCommunes())];
+$('#commune').autocomplete({
+	source : listeCommunes,
+	minLength: 1
+});
+
+
+// initialisation : membre courant par défaut
+var nombreMembres=@fiche.getFicheHasMembre.size();
+var listeMembres = [@Html(controllers.ajax.Listes.listeMembres())];
+
+
+// initialisation : ajout des observations et leurs compléments
+var nombreObservations=@fiche.getObservations().size();
+setTimeout(function(){rafraichirPhoto(1);},200);
+
+
+//****** post du formulaire /controle *********
+//*********************************************
+function poster(){
+
+	$('#message').html('');
+
+	//**** validation de la commune
+	var ville_nom_reel = $('#commune').val();
+	if( !(ville_nom_reel=='' || $.inArray(ville_nom_reel, listeCommunes)>0) ){
+		$('#message').append('- La ville spécifiée n\'est pas référencée.<br>');
+	}
+
+	//**** validation des observations et des compléments
+
+	// on initialise à zéro les listes des observations à faire passer dans le formulaire
+	$ ( '#listeObservationsNew' ).val('');
+	$ ( '#listeObservationsEdit' ).val('');
+
+	// on analyse chaque observation
+	$('#observations' ).children("tr" ).each(function() {
+		if ( $(this).attr('id') != 'apresDerniereObservation' ) {
+
+			// on ajoute les id de chaque observation dans un string qui passera dans le formulaire
+			var tempList = ($(this).attr ('id')).split('-');
+			var obs_tag = ''
+			if (tempList[1] == 'new'){
+				obs_tag = 'new-' + tempList[2];
+				$ ( '#listeObservationsNew' ).val ( $ ( '#listeObservationsNew' ).val ( ) + obs_tag + ',') ;
+
+				// de même pour les compléments
+				$('#listeComplements-' + obs_tag ).val('')
+				$(this).children(".complements" ).children("div" ).each(function(){
+					var tempList2 = ($(this).attr ('id')).split('-');
+					var comp_tag = tempList2[3];
+					$('#listeComplements-' + obs_tag ).val( $('#listeComplements-' + obs_tag ).val() + comp_tag + ',');
+				});
+			}
+			if (tempList[1] != 'new'){
+				obs_tag = + tempList[1];
+				$ ( '#listeObservationsEdit' ).val ( $ ( '#listeObservationsEdit' ).val ( ) + obs_tag + ',') ;
+
+				// de même pour les compléments
+				$('#listeComplements-' + obs_tag ).val('')
+				$(this).children(".complements" ).children("div" ).each(function(){
+					var tempList2 = ($(this).attr ('id')).split('-');
+					var comp_tag = tempList2[2];
+					$('#listeComplements-' + obs_tag ).val( $('#listeComplements-' + obs_tag ).val() + comp_tag + ',');
+				});
+			}
+
+
+
+		}
+	})
+	if ($('#listeObservationsNew').val( ) == '' && $('#listeObservationsEdit').val( ) == ''){
+	$('#message').append('- Vous devez ajouter au moins une observation.<br>');
+	}
+
+	//****** validation des témoins
+
+	validationTemoins();
+
+
+	//****** submit (si plus de msg d'erreur)
+	if (!$('#message').text()){
+		$('#form').submit();
+	}
+
+}
+
+
+</script>
+}

@@ -1,0 +1,47 @@
+@(message: String, groupe: Groupe)
+
+
+<span id="message">@message</span>
+
+<div style="width : 400 px ; margin-right : auto ; margin-left : auto ;">
+	<form id="editGroupementLocalForm">
+		<table>
+			<p>
+				Groupement n°@groupe.groupe_id
+			</p>
+			<tr>
+				<td>NOM :</td>
+				<td><input type="text" name="groupe_nom" value="@groupe.groupe_nom" placeholder="Nom du groupe" id="nom"></td>
+			</tr>
+			<tr>
+				<td>Groupe père: </td>
+				<td>
+					<select name="pere">
+						<option value="NULL">- (aucun)</option>
+						@for(gr: Groupe <- Groupe.findAllByHierarchie()) {
+							@if(gr.groupe_id != groupe.groupe_id) {
+								<option value="@gr.groupe_id" @if(groupe.groupe_pere!=null && gr.groupe_id==groupe.groupe_pere.groupe_id){selected}>
+									@if(gr.groupe_type.type_groupement_local_intitule.equals("sous-groupe")){&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} @gr.groupe_nom
+								</option>
+							}
+						}
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Type de groupe: </td>
+				<td>
+					<select name="type">
+					@for(ty: TypeGroupementLocal <- TypeGroupementLocal.find.findList()) {
+						<option value="@ty.type_groupement_local_intitule" @if(groupe.groupe_type.type_groupement_local_intitule.equals(ty.type_groupement_local_intitule)){selected}>@ty.type_groupement_local_intitule</option>
+					}
+					</select>
+				</td>
+			</tr>
+		</table>
+	</form>
+	<br>
+	<button onclick="submitEditGroupement(@groupe.groupe_id)">Valider</button>
+	<br><br>
+	<button onclick="deleteGroupement(@groupe.groupe_id)">Supprimer</button>
+</div>

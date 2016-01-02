@@ -1,0 +1,29 @@
+@import views.html.admin.organisationLocale.tableauFils
+
+<!-- HIERARCHIE -->
+<div id="hierarchie">
+
+        <!-- GROUPES-->
+    @tableauFils(Groupe.findAllOfType("groupe"), true)
+
+</div>
+
+<!-- ELEMENTS NON CLASSES -->
+<div id="unclassed">
+    <p>
+
+            </p>
+    <p><b><u>Elements non classés</u></b></p>
+        <!-- ESPECES -->
+    <p>Espèces :</p>
+    @for(espece <- Espece.findEspecesSansGroupe()) {
+        <div class="element">
+            <span class="typeGroupement">espèce</span><br>
+            <div class="espece" id="espece-@espece.espece_id" ondblclick="editEspece('@espece.espece_id')">@espece.espece_nom</div>
+        </div>
+    }
+        <!-- GROUPEMENTS -->
+    <p>Groupement locaux :<small>(sauf les groupes)</small></p>
+    @tableauFils(Groupe.findGroupesSansPere(), false)
+
+</div>

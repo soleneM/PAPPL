@@ -1,0 +1,19 @@
+
+ @(observation_tag: String, comp: InformationsComplementaires, groupe: Groupe)
+
+ <input type="text" id="nombreSpecimens-@observation_tag-@comp.informations_complementaires_id" name="nombreSpecimens-@observation_tag-@comp.informations_complementaires_id" placeholder="Nb" size="2" value="@comp.informations_complementaires_nombre_de_specimens">
+
+ <span>
+ 	<select id="stadeSexe-@observation_tag-@comp.informations_complementaires_id" name="stadeSexe-@observation_tag-@comp.informations_complementaires_id" onChange="rafraichirStadeSexePrecis('@observation_tag',@comp.informations_complementaires_id)">
+ 		@for(stade <- groupe.getStadeSexePeres()){
+ 			<option value="@stade.stade_sexe_id" @if(comp.informations_complementaires_stade_sexe.getStadeSexePerePourTelGroupe(groupe).stade_sexe_id == stade.stade_sexe_id){selected}>@stade</option>
+ 		}
+ 	</select>
+ 	<select id="stadeSexePrecis-@observation_tag-@comp.informations_complementaires_id" name="stadeSexePrecis-@observation_tag-@comp.informations_complementaires_id">
+		@for(stadePrecis <- groupe.getStadeSexeFils(comp.informations_complementaires_stade_sexe.getStadeSexePerePourTelGroupe(groupe))){
+			<option value="@stadePrecis.stade_sexe_id" @if(comp.informations_complementaires_stade_sexe.stade_sexe_id == stadePrecis.stade_sexe_id){selected}>@stadePrecis</option>
+		}
+	</select>
+ </span>
+
+<button onClick="supprimerComplement('@observation_tag-@comp.informations_complementaires_id');return false;"><img src="/assets/images/poubelle.png" height="15px" /></button>

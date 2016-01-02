@@ -1,0 +1,21 @@
+@import views.html.admin.organisationScientifique.tableauFils
+
+<!-- HIERARCHIE -->
+<div id="hierarchie">
+
+        <!-- GROUPES-->
+    @tableauFils(GroupementScientifique.findAllOfType("ordre"), true)
+
+</div>
+
+<!-- ELEMENTS NON CLASSES -->
+<div id="unclassed">
+    <p>
+
+            </p>
+    <p><b><u>Elements non classés</u></b></p>
+        <!-- GROUPEMENTS -->
+    <p>Groupements Scientifiques :<small>(sauf les ordres)</small></p>
+    @tableauFils(GroupementScientifique.findGroupementSansPere(), false)
+
+</div>

@@ -1,0 +1,76 @@
+@*********************************************************************************
+ * 
+ *   Copyright 2014 BOUSSEJRA Malik Olivier, HALDEBIQUE Geoffroy, ROYER Johan
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   
+ ********************************************************************************@
+@(groupes : List[Groupe])
+@main("Assigner des Experts"){
+	<h1>Assigner un expert à un groupe</h1>
+	<a href="/menuAdmin">Retour</a> | <a href="/gererOrganisationLocale">Gerer l'organisation locale</a>
+	<br><br>
+	<table>
+		<tr>
+			<th>Groupe</th>
+			<th>Expert assigné</th>
+		</tr>
+		@for(groupe <- Groupe.findAllByHierarchie()){
+		<tr @if(groupe.groupe_type.type_groupement_local_intitule.equals("groupe")){ style="background-color: lightgrey;"}>
+			<td>
+				@if(groupe.groupe_type.type_groupement_local_intitule.equals("sous-groupe")){&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+				@groupe.groupe_nom
+			</td>
+			<td>
+			@defining(groupe.getExperts()){ mieogs=>
+				@if(mieogs.isEmpty()){
+					<span id="expertDuGroupe@groupe.groupe_id">Pas d'expert, <button onClick="assignerExpert(@groupe.groupe_id)">en assigner un</button>.</span>
+				}else{
+				<ul>
+					@for(i:Int <- 0 to (mieogs.size()-1)){
+					<li id="expert@mieogs.get(i).MembreIsExpertOnGroupe_id">
+						@mieogs.get(i).membre.membre_nom
+						<button onClick="retrograderExpert(@mieogs.get(i).MembreIsExpertOnGroupe_id)">Rétrograder expert</button>
+					</li>
+					<form id="retrograderExpert@mieogs.get(i).MembreIsExpertOnGroupe_id" action="/assignerExpert/retrograder/@mieogs.get(i).MembreIsExpertOnGroupe_id" method="POST"></form>
+					}
+				</ul>
+				<span id="expertDuGroupe@groupe.groupe_id"><button onClick="assignerExpert(@groupe.groupe_id)">Ajouter un autre expert</button></span>
+				}
+			}
+			</td>
+		</tr>
+		}
+	</table>
+
+}{
+ <link rel="stylesheet" href="@routes.Assets.at("stylesheets/jquery-ui-1.10.4.custom.min.css")">
+ <script type="text/javascript" src="/assets/javascripts/jquery-ui-1.10.4.custom.min.js"></script>
+<script>
+function assignerExpert(groupe_id){
+	$.ajax({
+		url : '/listeDesMembres/inputGroupe'+groupe_id,
+		success: function (res) {
+			$('#expertDuGroupe'+groupe_id).html(
+					'<form method="POST" action="/assignerExpert/ajouter/'+groupe_id+'">'+res+'<button>Ajouter</button></form>'
+			);
+		}
+	});
+}
+function retrograderExpert(mieog_id){
+	if(confirm("Ce membre va perdre ses droits d'expert. Êtes-vous sûr de vouloir continuer ?")){
+		$('#retrograderExpert'+mieog_id).submit();
+	}
+}
+</script>
+}

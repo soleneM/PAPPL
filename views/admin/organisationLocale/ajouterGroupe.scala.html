@@ -1,0 +1,38 @@
+@(message: String)
+
+
+<span id="message">@message</span>
+<div style="width : 400 px ; margin-right : auto ; margin-left : auto ;">
+	<form id="newGroupementLocalForm">
+		<table>
+			<tr>
+				<td>NOM :</td>
+				<td><input type="text" name="groupe_nom" placeholder="Nom du groupe" id="nom"></td>
+			</tr>
+			<tr>
+				<td>Groupe père: </td>
+				<td>
+					<select name="pere">
+						<option value="NULL">none</option>
+						@for(gr: Groupe <- Groupe.findAllByHierarchie()) {
+							<option value="@gr.groupe_id">
+								@if(gr.groupe_type.type_groupement_local_intitule.equals("sous-groupe")){&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} @gr.groupe_nom
+							</option>
+						}
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Type de groupe: </td>
+				<td>
+					<select name="type">
+					@for(ty: TypeGroupementLocal <- TypeGroupementLocal.find.findList()) {
+						<option value="@ty.type_groupement_local_intitule">@ty.type_groupement_local_intitule</option>
+					}
+					</select>
+				</td>
+			</tr>
+		</table>
+	</form>
+	<button onclick="submitNewGroupement()">Valider</button>
+</div>

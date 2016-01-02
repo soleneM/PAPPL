@@ -1,0 +1,59 @@
+
+
+@(message: String, espece: Espece)
+
+
+<span id="message">@message</span>
+
+<div style="width : 400 px ; margin-right : auto ; margin-left : auto ;">
+	<form id="editEspeceForm">
+		<table>
+			<p>
+				Espece n°@espece.espece_id
+			</p>
+			<tr>
+				<td>nom : *</td>
+				<td><input type="text" name="espece_nom" value="@espece.espece_nom" placeholder="Nom de l'espece" id="espece_nom"></td>
+			</tr>
+			
+			<tr>
+				<td>auteur : *</td>
+				<td><input type="text" name="espece_auteur" value="@espece.espece_auteur" placeholder="Nom de l'auteur" id="espece_auteur"></td>
+			</tr>
+			<tr>
+				<td>systematique : *</td>
+				<td><input type="text" name="espece_systematique" value="@espece.espece_systematique" placeholder="systematique" id="espece_systematique"></td>
+			</tr>
+			<tr>
+				<td>commentaire :</td>
+				<td><input type="text" name="espece_commentaires" value="@espece.espece_commentaires" placeholder="commentaire" id="espece_commentaires"></td>
+			</tr>
+			<tr>
+				<td>Groupe/sous-groupe local père: </td>
+				<td>
+					<select name="pere">
+						<option value="NULL">none</option>
+						@for(gr: Groupe <- Groupe.findAllByHierarchie()) {
+							<option value="@gr.groupe_id"
+								@if(!espece.getGroupesPeres().isEmpty()){
+									@if(gr.groupe_id == espece.getGroupesPeres().get(0).groupe_id){selected}
+								}
+							>
+								@if(gr.groupe_type.type_groupement_local_intitule.equals("sous-groupe")){&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} @gr.groupe_nom
+							</option>
+						}
+					</select>
+				</td>
+			</tr>
+			<tr>
+			<td>Image: </td>
+			<td>@if(espece.espece_photo!=null){<img src="@espece.espece_photo" style="max-width:150px;max-height:100px"></img>}</td>
+			</tr>
+		</table>
+	</form>
+	<br>
+	<button onclick="changerImage(@espece.espece_id)">Changer image</button>
+	<br><br>
+	<button onclick="submitEditEspece(@espece.espece_id)">Valider</button>
+	
+</div>

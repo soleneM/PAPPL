@@ -1,0 +1,56 @@
+@(observation_tag: Integer, groupe_id: Integer, espece_id: Integer)
+@import views.html.membre.ajax.informationsComplementaires.newInformationsComplementaires
+@*<tr id="observation-new-@observation_tag">*@
+	<td>
+			<!-- photo de l'espèce-->
+		<div id="photo-new-@observation_tag" style="display: inline-block; vertical-align:top;"></div>
+
+			<!-- groupe -->
+		<select id="groupes-new-@observation_tag" onChange="rafraichirListeDEspeces('new-@observation_tag')" size="1">
+		@for(groupe <- Groupe.findAllOfType("groupe")){
+			<option value="@groupe.groupe_id" @if(groupe_id==groupe.groupe_id){selected}>@groupe.groupe_nom</option>
+		}
+		</select><br>
+		<span style="margin-left: 20px;"> &times; </span>
+
+			<!-- espèce -->
+		<select onClick="rafraichirPhoto('new-@observation_tag')" id="especes-new-@observation_tag" name="espece-new-@observation_tag" size="1">
+			@if(Groupe.find.where().eq("groupe_id",groupe_id).findUnique().getAllEspecesInThis != null) {
+				@for(espece <- Groupe.find.where().eq("groupe_id", groupe_id).findUnique().getEspecesInThisByAlpha()) {
+					<option value="@espece.espece_id" @if(espece_id == espece.espece_id) {selected}>@espece.espece_nom </option>
+				}
+			}
+		</select>
+
+	</td>
+			<!-- compléments-->
+	<td id="complements-new-@observation_tag" class="complements">
+		<div id="complement-new-@observation_tag-1">
+			@newInformationsComplementaires("new-" + observation_tag, 1, Groupe.find.byId(groupe_id), StadeSexe.find.byId(10))
+		</div>
+		<span id="apresDernierComplement-new-@observation_tag">
+			<input type="hidden" id="nbComplements-new-@observation_tag" name="nbComplements-new-@observation_tag" value="1" />
+			<input type="hidden" id="listeComplements-new-@observation_tag" name="listeComplements-new-@observation_tag" value="" />
+		</span>
+
+		<button onClick="ajouterComplement('new-@observation_tag');return false;">+</button>
+
+	</td>
+
+	<td>
+		<input type="text" name="determinateur-new-@observation_tag" placeholder="Déterminateur" size="10">
+	</td>
+
+	<td>
+		<input type="text" name="commentaires-new-@observation_tag" placeholder="Commentaire" size="10">
+	</td>
+
+	<td>
+		Nouvelle observation
+	</td>
+
+	<td>
+		<input type="hidden" id="idObservation-new-@observation_tag" name="idObservation-new-@observation_tag" value="1" />
+		<button onClick="supprimerObservation('new-@observation_tag');return false;"><img src="/assets/images/poubelle.png" height="20px" /></button>
+	</td>
+@*</tr>*@

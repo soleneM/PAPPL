@@ -1,0 +1,6 @@
+
+@(groupe: Groupe, stadeSexePere: StadeSexe)
+
+@for(stadePrecis <- groupe.getStadeSexeFils(stadeSexePere)){
+    <option value="@stadePrecis.stade_sexe_id">@stadePrecis</option>
+}

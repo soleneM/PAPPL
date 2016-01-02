@@ -1,0 +1,123 @@
+@*********************************************************************************
+ * 
+ *   Copyright 2014 BOUSSEJRA Malik Olivier, HALDEBIQUE Geoffroy, ROYER Johan
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   
+ ********************************************************************************@
+@(message: String)
+@main("Inscription"){<header>
+		<dl>
+		<a href="/">Retour</a>
+		</dl>
+	</header>
+	<h1>Inscription</h1>
+	<span class="message" id="message">@Html(message)</span>
+	<form action="/inscription" method="POST" id="form">
+	<table>
+	<tr>
+		<td>NOM et Prénom :</td>
+		<td><input type="text" name="nom" placeholder="NOM Prénom" id="nom"></td>
+	</tr>
+	<tr>
+		<td>Civilité :</td>
+		<td><input type="radio" name="civilite" value="M.">M. 
+			<input type="radio" name="civilite" value="Mme">Mme 
+			<input type="radio" name="civilite" value="">Autre 
+		</td>
+	</tr>
+	<tr>
+		<td>Adresse e-mail</td>
+		<td><input type="text" name="email" placeholder="Adresse e-mail" id="email"></td>
+	</tr>
+	@**********************************************************************************************
+	<tr>
+		<td>Adresse postale</td>
+		<td><input type="text" name="adresse" placeholder="Adresse ligne 1"></td>
+	</tr>
+	<tr>
+		<td>Complément d'adresse</td>
+		<td><input type="text" name="adresse_complement" placeholder="Complément d'adresse"></td>
+	</tr>
+	<tr>
+		<td>Code Postal</td>
+		<td><input type="text" name="cp" placeholder="Code postal"></td>
+	</tr>
+	<tr>
+		<td>Commune</td>
+		<td><input type="text" name="commune" placeholder="Commune"></td>
+	</tr>
+	<tr>
+		<td>Pays</td>
+		<td><input type="text" name="pays" placeholder="Pays" value="France"></td>
+	</tr>
+	<tr>
+		<td>Date de naissance</td>
+		<td>
+			<select name="jour">
+			@for(i: Int <- 1 to 31){
+				<option value="@i">@i</option>
+			}
+			</select>
+			<select name="mois">
+			@for(i: Int <- 1 to 12){
+				<option value="@i">@i</option>
+			}
+			</select>
+			<select name="annee">
+			@for(i: Int <- 1900 to Integer.parseInt(Calendar.getInstance().getTime().format("yyyy"))){
+				<option value="@i">@i</option>
+			}
+			</select>
+		</td>
+		*************************************************************************@
+	<tr>
+		<td>Mot de Passe</td>
+		<td><input type="password" name="passw" placeholder="Mot de passe" id="passw"></td>
+	</tr>
+	<tr>
+		<td>Confirmer mot de Passe</td>
+		<td><input type="password" name="passw_conf" placeholder="Confirmation" id="passw_conf"></td>
+	</tr>
+	</table>
+	<input type="checkbox" id="conditions"> J'accepte les <a class="lien" href="#" onClick="window.open('http://aer-nantes.fr/mentions-legales');">mentions légales</a> de l'association.
+	<button onClick="poster();return false;">Valider</button>
+	</form>
+	}{
+<script src="/assets/javascripts/verify-mail.js" type="text/javascript"></script>
+	<script>
+	function poster(){
+		if(!$('#conditions').is(':checked'))
+			$('#message').html('Vous n\'avez pas accepté les mentions légales.');
+		else if($('#passw').val()!=$('#passw_conf').val())
+			$('#message').html('Vos mots de passe sont différents');
+		else if($('#passw').val().length<5)
+			$('#message').html('Votre mot de passe fait moins de 5 caractères. Faites un mot de passe plus long.');
+		else if($('#nom').val()=='')
+			$('#message').html('Le champ "NOM Prénom" a été laissé vide.');
+		else if(!isRFC822ValidEmail($('#email').val()))
+			$('#message').html('Votre adresse mail n\'est pas valide.');
+		else{
+			$.ajax({
+				url: '/emailExisteOuPas/'+$('#email').val(),
+				success: function (res) {
+					$('#form').submit();
+				},
+				error: function(){
+					$('#message').html('Votre adresse mail est déjà utilisée.');
+				}
+			});
+		}
+	}
+	</script>
+	}

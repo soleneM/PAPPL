@@ -1,0 +1,48 @@
+@(message: String, gsci: GroupementScientifique)
+
+<span id="message">@message</span>
+	<div style="width: 400px;">
+		<form id="editGroupementScientifiqueForm">
+		<table>
+			<p>
+				Groupement n°@gsci.groupement_scientifique_id
+			</p>
+			<tr>
+				<td>NOM :</td>
+				<td><input type="text" name="groupement_scientifique_nom" value="@gsci.groupement_scientifique_nom" id="nom"></td>
+			</tr>
+			<tr>
+				<td>Groupement Scientifique père: </td>
+				<td>
+					<select name="pere">
+						<option value="NULL">none</option>
+						@for(gs: GroupementScientifique <- GroupementScientifique.findAllByHierarchie()){
+							@if(gs.groupement_scientifique_id != gsci.groupement_scientifique_id) {
+								<option value="@gs.groupement_scientifique_id" @if(gsci.groupement_scientifique_pere!=null && gs.groupement_scientifique_id==gsci.groupement_scientifique_pere.groupement_scientifique_id){selected}>
+								@if(gs.groupement_scientifique_type.intitule.equals("super-famille")){&nbsp;&nbsp;}
+								@if(gs.groupement_scientifique_type.intitule.equals("famille")){&nbsp;&nbsp;&nbsp;&nbsp;}
+								@if(gs.groupement_scientifique_type.intitule.equals("sous-famille")){&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+								@gs.groupement_scientifique_nom
+								</option>
+							}
+						}
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Type de groupe: </td>
+				<td>
+					<select name="type">
+					@for(ty: TypeGroupementScientifique <- TypeGroupementScientifique.find.findList()){
+						<option value="@ty.intitule" @if(gsci.groupement_scientifique_type.intitule.equals(ty.intitule)){selected}>@ty.intitule</option>
+					}
+					</select>
+				</td>
+			</tr>			
+		</table>
+		</form>
+		<br>
+	<button onclick="submitEditGroupement(@gsci.groupement_scientifique_id)">Valider</button>
+	<br><br>
+	<button onclick="deleteGroupement(@gsci.groupement_scientifique_id)">Supprimer</button>
+</div>

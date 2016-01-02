@@ -1,0 +1,75 @@
+@(fiche : Fiche)
+@import views.html.membre.ajax.observation.getObservation
+@main("Fiche de Témoignage"){
+<div style="display: table; margin-right: auto; margin-left: auto;">
+
+    <div align="right" xmlns="http://www.w3.org/1999/html">
+        <form action="/ficheDeTemoignage/editFiche/@fiche.fiche_id">
+            <button type="submit">Editer la fiche</button>
+        </form>
+    </div>
+    <br>
+            <!-- ENTETE FICHE -->
+    <div style="display: table; margin-right: auto; margin-left: auto;">
+        <table width="500px" class="display">
+        <tr>
+            <td colspan="2" align="center">
+                <b>Fiche n°@fiche.fiche_id </b><br>
+                <i>initalement soumise le @if(fiche.fiche_date_soumission!=null){@fiche.fiche_date_soumission.getTime().format("dd/MM/yyyy à HH:mm")}</i>
+            </td>
+        </tr>
+        <tr>
+            <td>Coordonnées UTM : @fiche.fiche_utm</td>
+            <td>Coordonnées GPS : @fiche.fiche_gps_coordinates</td>
+        </tr>
+        <tr>
+            <td>Lieu dit : @fiche.fiche_lieudit</td>
+            <td>Date min : @if(fiche.fiche_date_min!=null){@fiche.fiche_date_min.getTime().format("dd/MM/yyyy")}</td>
+        </tr>
+        <tr>
+            <td>Commune : @if(fiche.fiche_commune!=null){@fiche.fiche_commune.ville_nom_reel} @if(fiche.fiche_commune!=null){(@fiche.fiche_commune.ville_departement.departement_code)}</td>
+            <td>Date : @fiche.fiche_date.getTime().format("dd/MM/yyyy")</td>
+        </tr>
+            <tr>
+                <td colspan="2">
+                    Témoin(s) :  @defining(fiche.getFicheHasMembre()){ fhms =>
+                        @for(i:Int <- 0 to (fhms.size()-2)){
+                            @fhms.get(i).membre,&nbsp;
+                        }
+                        @fhms.get(fhms.size()-1).membre
+                    }
+                </td>
+            </tr>
+        <tr>
+            <td colspan="2">
+                Commentaires :<br>
+                @fiche.fiche_memo
+            </td>
+        </tr>
+        </table>
+
+    </div>
+    <br>
+            <!-- OBSERVATIONS -->
+    <p>Observations:</p>
+    <table class="table" class="display" style="margin-right: auto; margin-left: auto;">
+        <tbody>
+        @for(obs <- fiche.getObservations()){
+            @getObservation(obs)
+        }
+        </tbody>
+        <thead>
+            <tr>
+                <th>Groupe et espèce</th>
+                <th>Nb spécimens</th>
+                <th>Déterminateur</th>
+                <th>Mémo</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+    </table>
+
+</div>
+}{
+
+}

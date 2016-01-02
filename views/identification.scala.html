@@ -1,0 +1,69 @@
+@*********************************************************************************
+ * 
+ *   Copyright 2014 BOUSSEJRA Malik Olivier, HALDEBIQUE Geoffroy, ROYER Johan
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   
+ ********************************************************************************@
+@(message: String)
+@main("Identification"){
+	<div style="background-color: white; width: 475px; padding: 20px; border-radius: 10px; margin-left: auto; margin-right: auto;">
+		<img src="/assets/images/banniere-aer.png" height="200px"><br><br>
+		<span style="color: red;">@Html(message)</span>
+		<form action="/connexion" method="POST" style="text-align: center;">
+			<input type="login"	name="login" placeholder="Identifiant" size="40" /><br><br>
+			<input type="password"	name="passw" placeholder="Mot de Passe" size="40" /><br><br>
+			<input type="checkbox" name="memory" value="">Se souvenir de moi<br><br>
+			<button type="submit">Se connecter</button>
+			<br><br>
+			<a href="/retrouverMotDePasse">Mot de passe oublié ?</a>
+		</form>
+
+		<div id="comp">
+			<p><a href="/inscription">Pas encore inscrit ? Créez un compte ici !</a></p>
+			<p>Vous avez déjà témoigné via un formulaire papier et vous souhaitez désormais saisir vos témoignages en ligne ? Demandez votre identifiant et votre mot de passe à <a href="mailto://@Membre.getAdminMail()">@Membre.getAdminMail()</a>.</p>
+			<p>En cas de problème de connexion, merci de le signaler à <a href="mailto://@Membre.getAdminMail()">@Membre.getAdminMail()</a></p>
+		</div>
+		<p style="font-size:70%">Cette base de données a été développée par Malik Olivier Boussejra, Geoffroy Haldebique, Johan Royer, élèves ingénieur à l'École centrale de Nantes, dans le cadre de leur projet "web stratégies".</p>
+	</div>
+	<p><br><br><br></p>
+}{
+<script>
+</script>
+	<style type="text/css">
+		input{
+			padding: 10px;
+			border: none;
+			border-bottom: solid 1px #c9c9c9;
+			transition: border 0.3s;
+			font-size: 100%;
+		}
+
+		button{
+			padding: 10px;
+			width: 200px;
+			border: solid 1px #c9c9c9;
+			background: cornflowerblue;
+			transition: border 0.3s;
+			color: white;
+			font-size: 130%;
+		}
+
+		#comp{
+			border-top: solid 1px #c9c9c9;
+			border-bottom: solid 1px #c9c9c9;
+			margin-top: 30px;;
+			font-size: 80%;
+		}
+	</style>
+}

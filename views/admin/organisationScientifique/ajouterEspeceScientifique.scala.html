@@ -1,0 +1,46 @@
+@(message: String)
+
+
+<span id="message">@message</span>
+<div style="width : 400 px ; margin-right : auto ; margin-left : auto ;">
+	<form id="newEspeceForm">
+		<table>
+			<p>
+			</p>
+			<tr>
+				<td>nom : *</td>
+				<td><input type="text" name="espece_nom" " placeholder="Nom de l'espece" id="espece_nom"></td>
+			</tr>
+			
+			<tr>
+				<td>auteur : *</td>
+				<td><input type="text" name="espece_auteur"  placeholder="Nom de l'auteur" id="espece_auteur"></td>
+			</tr>
+			<tr>
+				<td>systematique : *</td>
+				<td><input type="text" name="espece_systematique"  placeholder="systematique" id="espece_systematique"></td>
+			</tr>
+			<tr>
+				<td>commentaire :</td>
+				<td><input type="text" name="espece_commentaires"  placeholder="commentaire" id="espece_commentaires"></td>
+			</tr>
+			<tr>
+				<td>Groupement Scientifique père: </td>
+				<td>
+					<select name="groupement scientifique_id">
+						<option value="NULL" selected >none</option>
+						@for(gs: GroupementScientifique <- GroupementScientifique.findAllByHierarchie()){							
+								<option value="@gs.groupement_scientifique_id">
+								@if(gs.groupement_scientifique_type.intitule.equals("super-famille")){&nbsp;&nbsp;}
+								@if(gs.groupement_scientifique_type.intitule.equals("famille")){&nbsp;&nbsp;&nbsp;&nbsp;}
+								@if(gs.groupement_scientifique_type.intitule.equals("sous-famille")){&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+								@gs.groupement_scientifique_nom
+								</option>	
+						}
+					</select>
+				</td>
+			</tr>
+		</table>
+	</form>
+	<button onclicK="submitNewEspece()">Valider</button>
+</div>

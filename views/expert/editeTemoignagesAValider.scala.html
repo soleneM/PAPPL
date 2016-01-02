@@ -1,0 +1,86 @@
+@*********************************************************************************
+ * 
+ *   Copyright 2014 BOUSSEJRA Malik Olivier, HALDEBIQUE Geoffroy, ROYER Johan
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   
+ ********************************************************************************@
+@(observation: Observation, listUtms: List[UTMS], listEspece: List[Espece], listStadeSexe: List[StadeSexe], groupe_id: Integer)
+		
+ 		 <form id="edite@observation.observation_id" action="/temoignagesAValider/editer/@groupe_id/@observation.observation_id" method="POST">
+ 		 <table>
+ 		 <tr>
+        		
+        		<th>Témoins</th>
+        		<th>Espèce</th>
+        		<th>Déterminateur</th>
+        		<th>Commentaires</th>
+        		<th>Date d'observation</th>
+        		<th>Lieu-dit</th>
+        		<th>Commune</th>
+        		<th>UTMS</th>
+        		<th>Memo</th>
+        		<th>Date de soumission</th>
+        		<th>Informations supplémentaires</th>
+        		<th>Date de dernière modification</th>
+        		<th>Editer l'Observation</th>
+        	</tr>
+ 		 <tr>
+ 				<td>@for(ficheHasMembre <-observation.observation_fiche.getFicheHasMembre()){ @ficheHasMembre.membre} </td>
+				<td>@observation.observation_espece.espece_nom <select name="espece_id">
+					@for(espece<-listEspece){
+					<option value="@espece.espece_id" @if(espece.espece_id==observation.observation_espece.espece_id){selected}>@espece.espece_nom </option>
+					}</select>
+				</td>
+				<td>@observation.observation_determinateur</td>
+				<td><input type="text" name="commentaire" value="@observation.observation_commentaires"></td>
+				<td>@observation.observation_fiche.fiche_date.getTime().format("dd/MM/yyyy")</td>
+				<td><input type="text" name="lieudit" value="@observation.observation_fiche.fiche_lieudit"></td>
+				<td>@if(observation.observation_fiche.fiche_commune!=null){@observation.observation_fiche.fiche_commune.ville_nom_reel}<span id="commune@observation.observation_id"></span></td>
+				<td>@if(observation.observation_fiche.fiche_utm!=null){@observation.observation_fiche.fiche_utm.utm}<select name="utm">
+					@for(utms <- listUtms){
+					<option value="@utms.utm" @if(observation.observation_fiche.fiche_utm!=null){@if(utms.utm==observation.observation_fiche.fiche_utm.utm){selected}}>@utms.utm</option>
+					}</select></td>
+				<td><textarea name="memo">@observation.observation_fiche.fiche_memo</textarea></td>
+				<td>@observation.observation_fiche.fiche_date_soumission.getTime().format("dd/MM/yyyy")</td>
+				<td>
+				<span id="nouvelleinfo"></span> 
+				@for(informationsComplementaires <-observation.getInfos()){
+					<!-- TO DO
+					<select name="stadesexe@informationsComplementaires.informations_complementaires_id">
+					@for(stadesexe <- listStadeSexe){
+						<option value="@stadesexe.stade_sexe_id" @if(stadesexe.stade_sexe_id==informationsComplementaires.informations_complementaires_stade_sexe.stade_sexe_id){selected}>
+							@stadesexe.stade_sexe_intitule
+						</option>}
+						-->
+					<input type="text" name="nombre@informationsComplementaires.informations_complementaires_id" value="@informationsComplementaires.informations_complementaires_nombre_de_specimens">
+					@informationsComplementaires.informations_complementaires_nombre_de_specimens 
+					@informationsComplementaires.informations_complementaires_stade_sexe
+					
+				}
+				</td>
+        			<td>@observation.observation_date_derniere_modification.getTime().format("dd/MM/yyyy")</td>
+        			<td><input type="button" value="Valider les changements" onclick="confirmEditer(@observation.observation_id)">
+        				@observation.observation_id </td>
+        				</tr>
+        				</table>
+    </form>
+    <button onclick="location.reload()">Annuler</button>
+    <span id="nouvelleInfoValidee"><button onclick="ajoutInfo()">Rajouter une nouvelle information complémentaire</button></span>
+<script>
+$(document).ready(function() {
+	setTimeout(function(){
+		$('#communeObservation'+@observation.observation_id).val('@if(observation.observation_fiche.fiche_commune!=null){@observation.observation_fiche.fiche_commune.ville_nom_reel}');
+	}, 300)
+});
+</script>

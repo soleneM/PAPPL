@@ -1,0 +1,94 @@
+@*********************************************************************************
+ * 
+ *   Copyright 2014 BOUSSEJRA Malik Olivier, HALDEBIQUE Geoffroy, ROYER Johan
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   
+ ********************************************************************************@
+@(membre: Membre)
+<h2>Editer les informations du témoin @membre.membre_nom</h2>
+<form action="/editerTemoin/@membre.membre_id" method="POST">
+<table class="gestionDesTemoinsPassifs">
+	<tr>
+		<th>Civilité</th>
+		<th>Nom</th>
+		<th>Adresse</th>
+		<th>Complément d'adresse</th>
+		<th>Code postal</th>
+		<th>Ville</th>
+		<th>Pays</th>
+		<th>Date de naissance</th>
+		<th>Date de décès</th>
+		<th>Téléphone</th>
+		<th>Confidentialité</th>
+		<th>Biographie</th>
+	</tr>
+	<tr>
+		<td><input class="nouveauTemoinCivilite" type="text" name="civilite" value="@membre.membre_civilite"></td>
+		<td><input class="nouveauTemoinInput" type="text" id="nom" name="nom" value="@membre.membre_nom"></td>
+		<td><input class="nouveauTemoinInput" type="text" name="adresse" value="@membre.membre_adresse"></td>
+		<td><input class="nouveauTemoinInput" type="text" name="complement" value="@membre.membre_adresse_complement"></td>
+		<td><input class="nouveauTemoinCours" type="text" name="cp" value="@membre.membre_code_postal"></td>
+		<td><input class="nouveauTemoinInput" type="text" name="ville" value="@membre.membre_ville"></td>
+		<td><input class="nouveauTemoinCours" type="text" name="pays" value="@membre.membre_pays"></td>
+		<td>
+			<select name="journais">
+				<option value="">&nbsp;</option>
+			@for(i: Int <- 1 to 31){
+				<option value="@i"@if(membre.membre_journais==i){ selected}>@i</option>
+			}
+			</select>
+			<select name="moisnais">
+				<option value="">&nbsp;</option>
+			@for(i: Int <- 1 to 12){
+				<option value="@i"@if(membre.membre_moisnais==i){ selected}>@i</option>
+			}
+			</select>
+			<select name="annenais">
+				<option value="">&nbsp;</option>
+			@for(i: Int <- 1700 to Integer.parseInt(Calendar.getInstance().getTime().format("yyyy"))){
+				<option value="@i"@if(membre.membre_annenais==i){ selected}>@i</option>
+			}
+			</select>
+		</td>
+		<td>
+			<select name="jourdece">
+				<option value="">&nbsp;</option>
+			@for(i: Int <- 1 to 31){
+				<option value="@i"@if(membre.membre_jourdece==i){ selected}>@i</option>
+			}
+			</select>
+			<select name="moisdece">
+				<option value="">&nbsp;</option>
+			@for(i: Int <- 1 to 12){
+				<option value="@i"@if(membre.membre_moisdece==i){ selected}>@i</option>
+			}
+			</select>
+			<select name="annedece">
+				<option value="">&nbsp;</option>
+			@for(i: Int <- 1700 to Integer.parseInt(Calendar.getInstance().getTime().format("yyyy"))){
+				<option value="@i"@if(membre.membre_annedece==i){ selected}>@i</option>
+			}
+			</select>
+		</td>
+		<td><input class="nouveauTemoinInput" type="text" name="tel" value="@membre.membre_tel"></td>
+		<td>
+			<input type="radio" name="confidentialite" value="libre"@if(membre.membre_confidentialite.equals(Confidentialite.OUVERTE)){ checked}> Libre
+			<input type="radio" name="confidentialite" value="casparcas"@if(membre.membre_confidentialite.equals(Confidentialite.CASPARCAS)){ checked}> Cas par cas
+		</td>
+		<td><textarea name="biographie">@membre.membre_biographie</textarea></td>
+	</tr>
+</table>
+<button>Valider les editions</button>
+</form>
+<br>

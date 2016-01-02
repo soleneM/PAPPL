@@ -1,0 +1,30 @@
+@*********************************************************************************
+ * 
+ *   Copyright 2014 BOUSSEJRA Malik Olivier, HALDEBIQUE Geoffroy, ROYER Johan
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   
+ ********************************************************************************@
+@(lien: String)
+Bonjour,<br>
+Vous avez demandé l'ouverture d'un compte pour témoigner sur la base en ligne de l'Atlas Entomologique Régional et nous vous en remercions.<br>
+Merci de suivre le lien ci-dessous pour confirmer votre demande de création :<br>
+<a href="@{play.Play.application().configuration().getString("domain.name")+"/verification/"+lien}">
+@{play.Play.application().configuration().getString("domain.name")+"/verification/"+lien}
+</a><br><br>
+Votre inscription ne sera véritablement effective qu'après la validation de l'administrateur de la
+base qui interviendra dans quelques jours. Vous en serez averti par courriel.<br>
+Cordialement<br>
+Le webmestre de l'AER<br>
+<a href="mailto://@Membre.getAdminMail()">@Membre.getAdminMail()</a>
+<br>

@@ -1,0 +1,197 @@
+@*********************************************************************************
+ * 
+ *   Copyright 2014 BOUSSEJRA Malik Olivier, HALDEBIQUE Geoffroy, ROYER Johan
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *   
+ ********************************************************************************@
+@(message: String)
+@main("Gérer les témoins"){
+<a href="/menuExpert">Retour</a><br>
+<h1>Gestion des témoins</h1>
+<button onClick="ajouter()">Ajouter un témoin</button>
+<span id="message">@Html(message)</span>
+<div style="display:none" id="ajouter">
+<h2>Ajouter un témoin dans la base de données</h2>
+<form action="/ajouterTemoinPassif" method="POST" id="form">
+	<table class="gestionDesTemoinsPassifs">
+	<tr>
+		<th>Civilité</th>
+		<th>Nom</th>
+		<th>Adresse</th>
+		<th>Complément d'adresse</th>
+		<th>Code postal</th>
+		<th>Ville</th>
+		<th>Pays</th>
+		<th>Date de naissance</th>
+		<th>Date de décès</th>
+		<th>E-mail</th>
+		<th>Téléphone</th>
+		<th>Confidentialité</th>
+		<th>Biographie</th>
+	</tr>
+	<tr>
+		<td><input class="nouveauTemoinCivilite" type="text" name="civilite"></td>
+		<td><input class="nouveauTemoinInput" type="text" id="nom" name="nom"></td>
+		<td><input class="nouveauTemoinInput" type="text" name="adresse"></td>
+		<td><input class="nouveauTemoinInput" type="text" name="complement"></td>
+		<td><input class="nouveauTemoinCours" type="text" name="cp"></td>
+		<td><input class="nouveauTemoinInput" type="text" name="ville"></td>
+		<td><input class="nouveauTemoinCours" type="text" name="pays"></td>
+		<td>
+			<select name="journais">
+				<option value="">&nbsp;</option>
+			@for(i: Int <- 1 to 31){
+				<option value="@i">@i</option>
+			}
+			</select>
+			<select name="moisnais">
+				<option value="">&nbsp;</option>
+			@for(i: Int <- 1 to 12){
+				<option value="@i">@i</option>
+			}
+			</select>
+			<select name="annenais">
+				<option value="">&nbsp;</option>
+			@for(i: Int <- 1700 to Integer.parseInt(Calendar.getInstance().getTime().format("yyyy"))){
+				<option value="@i">@i</option>
+			}
+			</select>
+		</td>
+		<td>
+			<select name="jourdece">
+				<option value="">&nbsp;</option>
+			@for(i: Int <- 1 to 31){
+				<option value="@i">@i</option>
+			}
+			</select>
+			<select name="moisdece">
+				<option value="">&nbsp;</option>
+			@for(i: Int <- 1 to 12){
+				<option value="@i">@i</option>
+			}
+			</select>
+			<select name="annedece">
+				<option value="">&nbsp;</option>
+			@for(i: Int <- 1700 to Integer.parseInt(Calendar.getInstance().getTime().format("yyyy"))){
+				<option value="@i">@i</option>
+			}
+			</select>
+		</td>
+		<td><input class="nouveauTemoinInput" id="email" type="text" name="email"></td>
+		<td><input class="nouveauTemoinInput" type="text" name="tel"></td>
+		<td>
+			<input type="radio" name="confidentialite" value="ouverte" checked> Libre<br>
+			<input type="radio" name="confidentialite" value="casparcas"> Cas par cas
+		</td>
+		<td><textarea name="biographie"></textarea></td>
+	</tr>
+	</table>
+	<button onClick="post();return false;">Ajouter</button>
+</form>
+</div>
+<div id="edit"></div>
+<br>
+<table class="gestionDesTemoinsPassifs" id="table">
+<thead>
+	<tr>
+		<th>Civilité</th>
+		<th>Nom</th>
+		<th>Adresse</th>
+		<th>Complément d'adresse</th>
+		<th>Code postal</th>
+		<th>Ville</th>
+		<th>Pays</th>
+		<th>Date de naissance</th>
+		<th>Date de décès</th>
+		<th>E-mail</th>
+		<th>Téléphone</th>
+		<th>Biographie</th>
+		<th>Confidentialité</th>
+		<th>Abonné</th>
+		<th>Editer</th>
+	</tr>
+</thead>
+<tbody>
+@for( membre <- Membre.findAll("membre_nom","asc")){
+	<tr>
+		<td>@membre.membre_civilite</td>
+		<td>@membre.membre_nom</td>
+		<td>@membre.membre_adresse</td>
+		<td>@membre.membre_adresse_complement</td>
+		<td>@membre.membre_code_postal</td>
+		<td>@membre.membre_ville</td>
+		<td>@membre.membre_pays</td>
+		<td>@membre.membre_journais/@membre.membre_moisnais/@membre.membre_annenais</td>
+		<td>@membre.membre_jourdece/@membre.membre_moisdece/@membre.membre_annedece</td>
+		<td>@membre.membre_email</td>
+		<td>@membre.membre_tel</td>
+		<td>@membre.membre_biographie</td>
+		<td>@membre.membre_confidentialite</td>
+		<td>@if(membre.membre_abonne){Abonné}else{Non abonné}</td>
+		<td><button onClick="editTemoin(@membre.membre_id)">Editer</button></td>
+	</tr>
+}
+</tbody>
+</table>
+}{
+<script type="text/javascript" src="/assets/javascripts/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf-8">
+$(document).ready(function() {
+	$('#table').dataTable({
+		"sScrollY": "500px",
+		"bPaginate": false,
+		"oLanguage": {
+			"sSearch": "Recherche :",
+			"sLengthMenu": "Display _MENU_ records per page",
+			"sZeroRecords": "Aucun résultat",
+			"sInfo": "Montre _START_ à _END_ de _TOTAL_ lignes",
+			"sInfoEmpty": "Showing 0 to 0 of 0 records",
+			"sInfoFiltered": "(filtré à partir de _MAX_ lignes au total)"
+		}
+	});
+	
+});
+</script>
+<script src="/assets/javascripts/verify-mail.js" type="text/javascript"></script>
+<script>
+function ajouter(){
+	$('#ajouter').attr('style','display:block');
+}
+function post(){
+	var mail = $('#email').val();
+	if($('#nom').val()==''){
+		$('#message').html('Le champ "Nom" a été laissé vide.');
+	}else if(mail!='' && !isRFC822ValidEmail(mail)){
+		$('#message').html('L\'adresse mail n\'est pas valide.');
+		return false;
+	}else if(mail==''){
+		$('#form').submit();
+	}else{
+		$.ajax({
+			url: '/emailExisteOuPas/'+mail,
+			success: function (res) {
+				$('#form').submit();
+			},
+			error: function(){
+				$('#message').html('L\'adresse mail est déjà utilisée.');
+				return false;
+			}
+		});
+	}
+}
+function editTemoin(membre_id){
+	$('#edit').load('/editerTemoin/'+membre_id);
+}
+</script>
+}
