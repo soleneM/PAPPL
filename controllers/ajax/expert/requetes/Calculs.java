@@ -510,7 +510,47 @@ private static ResultSet calculeEspecesParMaille(Map<String,String> info) throws
 		
 	}
 
-private static ResultSet calculeCarteDesObservations(Map<String,String> info) throws ParseException, SQLException {
+private static ResultSet calculeListeDesObservations(Map<String,String> info) throws ParseException, SQLException {
+	
+	DataSource ds = DB.getDataSource();
+	Connection connection = ds.getConnection();
+	PreparedStatement carteObs;
+
+	ArrayList<Object> listeParams = new ArrayList<Object>();
+	String statement = "";
+	
+	statement += "SELECT utms.utm, espece.espece_nom"
+			+ " FROM espece_is_in_groupement_local"
+			+ " INNER JOIN espece ON (espece_is_in_groupement_local.espece_espece_id = espece.espece_id)"
+			+ " INNER JOIN observation ON (espece.espece_id = observation.observation_espece_espece_id)"
+			+ " INNER JOIN fiche ON (observation.observation_fiche_fiche_id = fiche.fiche_id)"
+			+ " INNER JOIN utms ON (fiche.fiche_utm_utm = utms.utm)"
+			+ " INNER JOIN fiche_has_membre ON (fiche.fiche_id = fiche_has_membre.fiche_fiche_id)"
+			+ " INNER JOIN membre ON (fiche_has_membre.membre_membre_id = membre.membre_id)"
+			+ " WHERE observation.observation_validee = 1"
+			+ " AND membre.membre_nom = ?";
+	
+	listeParams.add(info.get("temoin"));
+	
+	if (! info.get("periode").equals("all")) {
+		statement += " AND fiche.fiche_date BETWEEN ? AND ?";
+
+		Calendar date1 = getDataDate1(info);
+		Calendar date2 = getDataDate2(info);
+		listeParams.add(new java.sql.Date(date1.getTimeInMillis()));
+		listeParams.add(new java.sql.Date(date2.getTimeInMillis()));
+	}
+	
+	statement += " ORDER BY utms.utm";
+	
+	carteObs = connection.prepareStatement(statement); 
+	setParams(carteObs, listeParams);
+	ResultSet rs = carteObs.executeQuery();
+	
+	return rs;
+}
+
+private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,String> info) throws ParseException, SQLException {
 	
 	DataSource ds = DB.getDataSource();
 	Connection connection = ds.getConnection();
@@ -547,7 +587,15 @@ private static ResultSet calculeCarteDesObservations(Map<String,String> info) th
 	setParams(carteObs, listeParams);
 	ResultSet rs = carteObs.executeQuery();
 	
-	return rs;
+	HashMap<UTMS,Integer> carteData = new HashMap<>();
+	while (rs.next()){
+		String maille = rs.getString("utms.utm");
+		UTMS mailleUTM = new UTMS();
+		mailleUTM.utm = maille;
+		Integer nbEspeces = rs.getInt("nbespeces");
+		carteData.put(mailleUTM,nbEspeces);
+	}
+	return carteData;
 		
 	}
 
@@ -713,8 +761,11 @@ private static ResultSet calculeCarteDesObservations(Map<String,String> info) th
 				case 120 : // Carte des observations
 					// Pour un témoin donné, carte du nombre d'espèces différentes par 
 					// mailles prospectées
-					ResultSet carteDesObservations = calculeCarteDesObservations(info);
-					excelData = ListeExportExcel.listeDesObservations(info,carteDesObservations);
+					ResultSet listeObservations = calculeListeDesObservations(info);
+					excelData = ListeExportExcel.listeDesObservations(info,listeObservations);
+					carteData = calculeCarteDesObservations(info);
+					carteImage = new Carte(carteData);
+					carteImage.writeToDisk();
 					message = buildMessage("Carnet des observations de "+info.get("temoin"), info);
 					break;
 

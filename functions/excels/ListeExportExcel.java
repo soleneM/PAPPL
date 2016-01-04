@@ -387,10 +387,57 @@ public class ListeExportExcel extends Excel{
 		return theFile;
 	}
 	
-	public static ListeExportExcel listeDesObservations(Map<String,String> info, ResultSet carteObs) throws IOException, SQLException{
+	public static ListeExportExcel listeDesObservations(Map<String,String> info, ResultSet listeObservations) throws IOException, SQLException{
 		ListeExportExcel theFile = new ListeExportExcel();
 		Sheet sheet = theFile.wb.createSheet("Liste des observations");
-		return theFile;
+
+		String titre = "Espèces trouvées par maille";
+		
+		sheet.createRow(0).createCell(0).setCellValue(titre);
+		sheet.addMergedRegion(new CellRangeAddress(
+				0, //first row (0-based)
+				0, //last row  (0-based)
+				0, //first column (0-based)
+				330  //last column  (0-based)
+				));
+		Row rowHead = sheet.createRow(1);
+		rowHead.createCell(0).setCellValue("Maille");
+		rowHead.createCell(1).setCellValue("Espèces observées");
+
+		CellStyle cellStyleDate = theFile.wb.createCellStyle();
+		CreationHelper creationHelper = theFile.wb.getCreationHelper();
+		cellStyleDate.setDataFormat(creationHelper.createDataFormat().getFormat("dd/mm/yyyy"));
+		
+		listeObservations.next();
+		String maille = listeObservations.getString("utms.utm");
+		String espece = listeObservations.getString("espece.espece_nom");
+		Row row = sheet.createRow(2);
+		row.createCell(0).setCellValue(maille);
+		row.createCell(1).setCellValue(espece);
+		
+		int i = 3;
+		int j = 1;
+		while (listeObservations.next()) {
+			String utm = listeObservations.getString("utms.utm");
+			espece = listeObservations.getString("espece.espece_nom");
+			
+			if (!utm.equals(maille)){
+				row = sheet.createRow(i);
+				row.createCell(0).setCellValue(utm);
+				row.createCell(1).setCellValue(espece);
+				i++;
+				j=2;
+				maille = utm;		
+			} else {
+				row.createCell(j).setCellValue(espece);
+				j++;
+			}
+
+		}
+
+		for(int k = 0; k<329 ; k++)
+			sheet.autoSizeColumn(k);
+		return(theFile);
 	}
 	
 	public static ListeExportExcel listeEspecesParMaille(Map<String,String> info, ResultSet especesParMaille) throws SQLException{
