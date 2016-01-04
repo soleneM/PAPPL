@@ -387,6 +387,12 @@ public class ListeExportExcel extends Excel{
 		return theFile;
 	}
 	
+	public static ListeExportExcel listeDesObservations(Map<String,String> info, ResultSet carteObs) throws IOException, SQLException{
+		ListeExportExcel theFile = new ListeExportExcel();
+		Sheet sheet = theFile.wb.createSheet("Liste des observations");
+		return theFile;
+	}
+	
 	public static ListeExportExcel listeEspecesParMaille(Map<String,String> info, ResultSet especesParMaille) throws SQLException{
 		ListeExportExcel theFile = new ListeExportExcel();
 		Sheet sheet = theFile.wb.createSheet("Especes par maille");
