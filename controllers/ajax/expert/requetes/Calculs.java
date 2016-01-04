@@ -485,6 +485,31 @@ public class Calculs extends Controller {
 		}
 	}
 	
+private static ResultSet calculeEspecesParMaille(Map<String,String> info) throws ParseException, SQLException {
+		
+		Calendar date1 = Calculs.getDataDate1(info);
+		Calendar date2 = Calculs.getDataDate2(info);
+		  
+		DataSource ds = DB.getDataSource();
+
+		Connection connection = ds.getConnection();
+		String statement = ""
+				+ "SELECT f.fiche_utm_utm, e.espece_nom, count(e.espece_nom) FROM observation obs "
+				+ "INNER JOIN fiche f ON obs.observation_fiche_fiche_id = f.fiche_id "
+				+ "INNER JOIN espece e ON obs.observation_espece_espece_id = e.espece_id "
+				+ "WHERE obs.observation_validee = 1 and f.fiche_date BETWEEN ? AND ? "
+				+ "GROUP BY f.fiche_utm_utm, e.espece_nom ";
+		PreparedStatement especesParMaille = connection.prepareStatement(statement); 
+		especesParMaille.setDate(1,new java.sql.Date(date1.getTimeInMillis()));
+		especesParMaille.setDate(2,new java.sql.Date(date2.getTimeInMillis()));	
+				
+		ResultSet rs = especesParMaille.executeQuery();
+		
+		return rs;
+
+		
+	}
+	
 	
 	/**
 	 * Etablit le message à afficher
@@ -607,8 +632,8 @@ public class Calculs extends Controller {
 				case 70 : // Espèces par maille(s)
 					// Pour une période donnée liste maille par maille des espèces renseignées 
 					// avec le nombre des témoignages de ces espèces
-					ResultSet especesParMaille = EspecesParMaille.calculeEspecesParMaille(info);
-					excelData = new EspecesParMailleExcel(info,especesParMaille);
+					ResultSet especesParMaille = calculeEspecesParMaille(info);
+					excelData = ListeExportExcel.listeEspecesParMaille(info,especesParMaille);
 					message = buildMessage("Espèces par maille", info);
 				break;
 
