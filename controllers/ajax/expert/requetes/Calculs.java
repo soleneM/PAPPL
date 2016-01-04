@@ -96,7 +96,7 @@ public class Calculs extends Controller {
 	
 	
 	/**
-	 * Calcule la liste des témoignages par espèces sur une période
+	 * Calcule la liste des t�moignages par esp�ces sur une p�riode
 	 * @return
 	 */
 	private static ResultSet calculeListeDesTemoignages(Map<String,String> info, int tailleUTM) throws ParseException, SQLException {
@@ -107,7 +107,7 @@ public class Calculs extends Controller {
 		ArrayList<Object> listeParams = new ArrayList<Object>();
 		String statement = "";
 		statement = "SELECT espece.espece_nom as espece_nom, membre.membre_nom as membre_nom, ";
-		// utilisation d'un switch au cas où on voudrait utiliser uniquement les mailles 50x50, ou 100x100
+		// utilisation d'un switch au cas o� on voudrait utiliser uniquement les mailles 50x50, ou 100x100
 		switch (tailleUTM) {
 			case 20:
 				statement += "utms.maille20x20, f.fiche_Date";
@@ -181,7 +181,7 @@ public class Calculs extends Controller {
 
 		ArrayList<Object> listeParams = new ArrayList<Object>();
 		String statement = "";
-		// utilisation d'un switch au cas où on voudrait utiliser uniquement les mailles 50x50, ou 100x100
+		// utilisation d'un switch au cas o� on voudrait utiliser uniquement les mailles 50x50, ou 100x100
 		switch (tailleUTM) {
 			case 20:
 				statement += "SELECT utms.maille20x20, COUNT(f.fiche_Date) AS nbtem";
@@ -266,7 +266,7 @@ public class Calculs extends Controller {
 	}
 	
 	/**
-	 * Calcule la somme des espèces témoignées par maille sur une période pour un groupe ou sous-groupe défini
+	 * Calcule la somme des esp�ces t�moign�es par maille sur une p�riode pour un groupe ou sous-groupe d�fini
 	 * @param info
 	 * @param tailleUTM
 	 * @return
@@ -414,7 +414,7 @@ public class Calculs extends Controller {
 	}
 
 	/**
-	 * Calcule la liste des témoins et le nombre de témoignages sur une période
+	 * Calcule la liste des t�moins et le nombre de t�moignages sur une p�riode
 	 * @return
 	 */
 	private static ResultSet calculeListeDesTemoins(Map<String,String> info) throws ParseException, SQLException {
@@ -447,7 +447,7 @@ public class Calculs extends Controller {
 	}
 	
 	/**
-	 * Calcule la liste des espèces observées et le nombre de mailles renseignées
+	 * Calcule la liste des esp�ces observ�es et le nombre de mailles renseign�es
 	 * @return
 	 */
 	private static ResultSet calculeListeDesEspeces(Map<String,String> info) throws ParseException, SQLException {
@@ -599,11 +599,40 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 		
 	}
 
+/**
+* Donne des statistiques de phenologie: pour une periode donnee, et par espece, 
+* histogramme par decades (mois divise en trois) 
+* du nombre de temoignages(quel que soit le nmobre d'individus)
+* @return
+*/
+	
+private static ResultSet calculePhenologie(Map<String,String> info) throws ParseException, SQLException {
+		
+		Calendar date1 = Calculs.getDataDate1(info);
+		Calendar date2 = Calculs.getDataDate2(info);
+		  
+		DataSource ds = DB.getDataSource();
 
+		Connection connection = ds.getConnection();
+		String statement = ""
+				+ "SELECT COUNT(observation.observation_id), espece.espece_nom FROM espece"
+				+ "INNER JOIN observation ON observation.observation_espece_espece_id = espece.espece_id "
+				+ "INNER JOIN fiche ON observation.observation_fiche_fiche_id = fiche.fiche_id "
+				+ "WHERE fiche.fiche_date BETWEEN ? AND ? "
+				+ "GROUP BY espece.espece_nom ";
+		PreparedStatement especesParMaille = connection.prepareStatement(statement); 
+		especesParMaille.setDate(1,new java.sql.Date(date1.getTimeInMillis()));
+		especesParMaille.setDate(2,new java.sql.Date(date2.getTimeInMillis()));	
+				
+		ResultSet rs = especesParMaille.executeQuery();
+		
+		return rs;
+
+}
 	
 	
 	/**
-	 * Etablit le message à afficher
+	 * Etablit le message � afficher
 	 * @param titre : le titre du message
 	 * @param info : la liste des informations de construction du fichier Excel
 	 * @return
@@ -632,7 +661,7 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 	}
 	
 	/**
-	 * Exporte les données dans un fichier Excel
+	 * Exporte les donn�es dans un fichier Excel
 	 * @return
 	 */
 	public static Result exportDonnees() throws ParseException, IOException, SQLException{
@@ -648,39 +677,39 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 			StringBuilder temp = new StringBuilder();
 
 			switch (typeStat) {
-				case 10 : // Carte par espèce
-					// Pour une période donnée, et par espèce, liste des premiers témoignages 
-					// de chaque maille (maille, index, date, témoin(s)) avec carte du nombre 
-					// de témoignages par mailles
+				case 10 : // Carte par esp�ce
+					// Pour une p�riode donn�e, et par esp�ce, liste des premiers t�moignages 
+					// de chaque maille (maille, index, date, t�moin(s)) avec carte du nombre 
+					// de t�moignages par mailles
 					ResultSet listeTemoignages = calculeListeDesTemoignages(info,0);
 					excelData = ListeExportExcel.listeDesTemoignages(info,listeTemoignages,0);
 					carteData = calculeCarteTemoignages(info,0);
 					carteImage = new Carte(carteData);
 					carteImage.writeToDisk();
-					message = buildMessage("Carte par espèces", info);
+					message = buildMessage("Carte par esp�ces", info);
 
 				break;
 
-				case 20 : // Carte 20x20 par espèce
-					// Pour une période donnée, et par espèce, liste des premiers témoignages
-					// de chaque maille UTM 20km X 20km (maille, index, date, témoin(s)) avec
-					// carte du nombre de témoignages par mailles
+				case 20 : // Carte 20x20 par esp�ce
+					// Pour une p�riode donn�e, et par esp�ce, liste des premiers t�moignages
+					// de chaque maille UTM 20km X 20km (maille, index, date, t�moin(s)) avec
+					// carte du nombre de t�moignages par mailles
 					ResultSet listeTemoignagesUTM20 = calculeListeDesTemoignages(info,20);
 					excelData = ListeExportExcel.listeDesTemoignages(info,listeTemoignagesUTM20,20);
 					/*
-					NE FONCTIONNE PAS POUR L'INSTANT (pas de fichier carte.png représentant les mailles 20x20)
-					message = buildMessage("Carte 20x20 par espèces", info);
+					NE FONCTIONNE PAS POUR L'INSTANT (pas de fichier carte.png repr�sentant les mailles 20x20)
+					message = buildMessage("Carte 20x20 par esp�ces", info);
 					carteData = calculeCarteTemoignages(info,20);
 					carteImage = new Carte(carteData);
 					carteImage.writeToDisk();
 					*/
-					message = buildMessage("Carte 20x20 par espèces", info);
+					message = buildMessage("Carte 20x20 par esp�ces", info);
 
 				break;
 
 				case 30 : // Carte somme
-					// Pour une période donnée, et pour toutes les espèces du groupe ou du 
-					// sous-groupe choisi, carte du nombre d'espèces témoignées par maille
+					// Pour une p�riode donn�e, et pour toutes les esp�ces du groupe ou du 
+					// sous-groupe choisi, carte du nombre d'esp�ces t�moign�es par maille
 					ResultSet sommeEspeces = calculeSommeEspeces(info,0);
 					excelData = ListeExportExcel.sommeEspeces(info,sommeEspeces,0);
 					carteData = calculeCarteSommeEspeces(info,0);
@@ -691,13 +720,13 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 				break;
 
 				case 40 : // Carte somme 20x20
-					// Pour une période donnée, et pour toutes les espèces du groupe ou du 
-					// sous-groupe choisi, carte du nombre d'espèces témoignées par maille 
+					// Pour une p�riode donn�e, et pour toutes les esp�ces du groupe ou du 
+					// sous-groupe choisi, carte du nombre d'esp�ces t�moign�es par maille 
 					// UTM 20km X 20km
 					ResultSet sommeEspecesUTM20 = calculeSommeEspeces(info,20);
 					excelData = ListeExportExcel.sommeEspeces(info,sommeEspecesUTM20,20);
 					/*
-					NE FONCTIONNE PAS POUR L'INSTANT (pas de fichier carte.png représentant les mailles 20x20)
+					NE FONCTIONNE PAS POUR L'INSTANT (pas de fichier carte.png repr�sentant les mailles 20x20)
 					carteData = calculeCarteSommeEspeces(info,20);
 					carteImage = new Carte(carteData);
 					carteImage.writeToDisk();
@@ -705,62 +734,66 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 					message = buildMessage("Carte somme 20x20", info);
 				break;
 
-				case 50 : // Liste des témoins
-					// Liste alphabétique des témoins pour une période donnée
+				case 50 : // Liste des t�moins
+					// Liste alphab�tique des t�moins pour une p�riode donn�e
 					ResultSet listeTemoins = calculeListeDesTemoins(info);
 					excelData = ListeExportExcel.listeDesTemoins(info,listeTemoins);
-					message = buildMessage("Liste des témoins", info);
+					message = buildMessage("Liste des t�moins", info);
 					break;
 
-				case 60 : // Liste des espèces
-					// Liste des espèces par ordre systématique pour une période donnée avec 
-					// le nombre de mailles renseignées
+				case 60 : // Liste des esp�ces
+					// Liste des esp�ces par ordre syst�matique pour une p�riode donn�e avec 
+					// le nombre de mailles renseign�es
 					ResultSet listeEspeces = calculeListeDesEspeces(info);
 					excelData = ListeExportExcel.listeDesEspeces(info,listeEspeces);
-					message = buildMessage("Liste des espèces", info);
+					message = buildMessage("Liste des esp�ces", info);
 					break;
 
-				case 70 : // Espèces par maille(s)
-					// Pour une période donnée liste maille par maille des espèces renseignées 
-					// avec le nombre des témoignages de ces espèces
+				case 70 : // Esp�ces par maille(s)
+					// Pour une p�riode donn�e liste maille par maille des esp�ces renseign�es 
+					// avec le nombre des t�moignages de ces esp�ces
 					ResultSet especesParMaille = calculeEspecesParMaille(info);
 					excelData = ListeExportExcel.listeEspecesParMaille(info,especesParMaille);
-					message = buildMessage("Espèces par maille", info);
+					message = buildMessage("Esp�ces par maille", info);
 				break;
 
-				case 80 : // Espèces par commune
-					// Pour une période donnée liste par commune des espèces renseignées avec 
-					// le nombre des témoignages de ces espèces
+				case 80 : // Esp�ces par commune
+					// Pour une p�riode donn�e liste par commune des esp�ces renseign�es avec 
+					// le nombre des t�moignages de ces esp�ces
 					ResultSet especesParCommune = EspecesParCommune.calculeEspecesParCommune(info);
 					excelData = new EspecesParCommuneExcel(info,especesParCommune);
-					message = buildMessage("Espèces par commune", info);
+					message = buildMessage("Esp�ces par commune", info);
 					break;
 
-				case 90 : // Espèces par département
-					// Pour une période donnée liste par département des espèces renseignées 
-					// avec le nombre des témoignages de ces espèces</td>
+				case 90 : // Esp�ces par d�partement
+					// Pour une p�riode donn�e liste par d�partement des esp�ces renseign�es 
+					// avec le nombre des t�moignages de ces esp�ces</td>
 					ResultSet especesParDepartement = EspecesParDepartement.calculeEspecesParDepartement(info);
 					excelData = new EspecesParDepartementExcel(info,especesParDepartement);
-					message = buildMessage("Espèces par département", info);
+					message = buildMessage("Esp�ces par d�partement", info);
 					break;
 
-				case 100 : // Phénologie
-					// Pour une période donnée, et par espèce, histogramme par décades 
-					// (mois divisé en trois) du nombre de témoignages (quels que soient 
+				case 100 : // Phenologie
+					// Pour une periode donnee, et par espece, histogramme par decades 
+					// (mois divises en trois) du nombre de temoignages (quels que soient 
 					// le nombre d'individus)
+					ResultSet phenologie = calculePhenologie(info);
+					excelData = ListeExportExcel.phenologie(info,phenologie);
+					message = buildMessage("Phenologie", info);
 				break;
+				
 
 				case 110 : // Carnet de Chasse
-					// liste chronologique des différents lieux prospectés et, dans ces lieux, 
-					// des différentes espèces observées avec détail des nombres et stade/sexe
+					// liste chronologique des diff�rents lieux prospect�s et, dans ces lieux, 
+					// des diff�rentes esp�ces observ�es avec d�tail des nombres et stade/sexe
 					ResultSet carnetDeChasse = CarnetDeChasse.calculeCarnetDeChasse(info);
 					excelData = new CarnetDeChasseExcel(info,carnetDeChasse);
 					message = buildMessage("Carnet de chasse de "+info.get("temoin"), info);
 					break;
 
 				case 120 : // Carte des observations
-					// Pour un témoin donné, carte du nombre d'espèces différentes par 
-					// mailles prospectées
+					// Pour un t�moin donn�, carte du nombre d'esp�ces diff�rentes par 
+					// mailles prospect�es
 					ResultSet listeObservations = calculeListeDesObservations(info);
 					excelData = ListeExportExcel.listeDesObservations(info,listeObservations);
 					carteData = calculeCarteDesObservations(info);
@@ -770,7 +803,7 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 					break;
 
 				case 130 : // Historique
-					// Graphique par période de 20 ans du nombre de témoignages
+					// Graphique par p�riode de 20 ans du nombre de t�moignages
 					Historique historique = new Historique(info);
 					excelData = new HistoriqueExcel(info,historique);
 					message = buildMessage("Historique", info);
@@ -781,40 +814,40 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 				case 1001 :	// temoins par periode
 					List<TemoinsParPeriode> temoins = TemoinsParPeriode.calculeTemoinsParPeriode(info);
 					excelData = new TemoinsParPeriodeExcel(info,temoins);
-					message = buildMessage("Témoignages pour "+info.get("temoin"), info);
+					message = buildMessage("T�moignages pour "+info.get("temoin"), info);
 					break;
-				case 1002 :	// Historique des especes selectionnées
+				case 1002 :	// Historique des especes selectionn�es
 					HistoriqueDesEspeces hde = new HistoriqueDesEspeces(info);
 					excelData = new HistoriqueDesEspecesExcel(info,hde);
 				break;
-				case 1003 : // Chronologie d'un témoin
+				case 1003 : // Chronologie d'un t�moin
 					ChronologieDUnTemoin cdut = new ChronologieDUnTemoin(info);
 					excelData = new ChronologieDUnTemoinExcel(info,cdut);
-					message = "Chronologie d'un témoin";
+					message = "Chronologie d'un t�moin";
 				break;
-				case 1004 : // Mailles par période
+				case 1004 : // Mailles par p�riode
 					MaillesParPeriode mpp = new MaillesParPeriode(info);
 					excelData = new MaillesParPeriodeExcel(info,mpp);
-					message = "Mailles par période";
+					message = "Mailles par p�riode";
 				break;
 				case 1005 : // Histogramme des stades
 					HistogrammeDesImagos hdi = new HistogrammeDesImagos(info);
 					excelData = new HistogrammeDesImagosExcel(info,hdi);
 				break;
-				case 1006 : // Mailles par espèces
+				case 1006 : // Mailles par esp�ces
 					MaillesParEspece mpe = new MaillesParEspece(info);
 					excelData = new MaillesParEspeceExcel(info,mpe);
-					message = "Mailles par espèces";
+					message = "Mailles par esp�ces";
 				break;
 				case 1007 : // Carte somme
 					CarteSomme cs = new CarteSomme(info);
 					excelData = new CarteSommeExcel(info,cs);
 					message = "Carte somme";
 				break;
-				case 1008 : // Carte somme biodiversité
+				case 1008 : // Carte somme biodiversit�
 					CarteSommeBiodiversite csb = new CarteSommeBiodiversite(info);
 					excelData = new CarteSommeBiodiversiteExcel(info,csb);
-					message = "Carte somme biodiversité";
+					message = "Carte somme biodiversit�";
 				break; */
 			}
 		}
@@ -827,7 +860,7 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 	}
 	
 	/**
-	 * Récupère les paramètres du formulaire
+	 * R�cup�re les param�tres du formulaire
 	 * et les charges dans une Map
 	 * @return
 	 */
