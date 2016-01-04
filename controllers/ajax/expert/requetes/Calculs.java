@@ -629,6 +629,98 @@ private static ResultSet calculePhenologie(Map<String,String> info) throws Parse
 		return rs;
 
 }
+
+/** 
+ *  Pour une p�riode donn�e liste par commune des esp�ces renseign�es avec le nombre des t�moignages de ces esp�ces
+ */
+public static ResultSet calculeEspecesParCommune(Map<String,String> info) throws ParseException, SQLException {
+	
+	Calendar date1 = Calculs.getDataDate1(info);
+	Calendar date2 = Calculs.getDataDate2(info);
+	  
+	DataSource ds = DB.getDataSource();
+
+	Connection connection = ds.getConnection();
+	String statement = ""
+			+ "SELECT c.ville_nom , e.espece_nom, count(e.espece_nom) FROM Observation obs "
+			+ "INNER JOIN Fiche f ON obs.observation_fiche_fiche_id = f.fiche_id "
+			+ "INNER JOIN Espece e ON obs.observation_espece_espece_id = e.espece_id "
+			+ "INNER JOIN Commune c ON f.fiche_commune_ville_id = c.ville_id "			
+			+ "WHERE obs.observation_validee = 1 and f.fiche_date BETWEEN ? AND ? "
+			+ "GROUP BY c.ville_nom, e.espece_nom ";
+	PreparedStatement especesParCommune = connection.prepareStatement(statement); 
+	especesParCommune.setDate(1,new java.sql.Date(date1.getTimeInMillis()));
+	especesParCommune.setDate(2,new java.sql.Date(date2.getTimeInMillis()));	
+			
+	ResultSet rs = especesParCommune.executeQuery();
+	
+	return rs;
+
+	
+}
+
+/** 
+ *  Pour une p�riode donn�e liste par d�partement des esp�ces renseign�es avec le nombre des t�moignages de ces esp�ces
+ */
+
+public static ResultSet calculeEspecesParDepartement(Map<String,String> info) throws ParseException, SQLException {
+	
+	Calendar date1 = Calculs.getDataDate1(info);
+	Calendar date2 = Calculs.getDataDate2(info);
+	  
+	DataSource ds = DB.getDataSource();
+
+	Connection connection = ds.getConnection();
+	String statement = ""
+			+ "SELECT d.departement_nom , e.espece_nom, count(e.espece_nom) FROM Observation obs "
+			+ "INNER JOIN Fiche f ON obs.observation_fiche_fiche_id = f.fiche_id "
+			+ "INNER JOIN Espece e ON obs.observation_espece_espece_id = e.espece_id "
+			+ "INNER JOIN Commune c ON f.fiche_commune_ville_id = c.ville_id "	
+			+ "INNER JOIN Departement d ON c.ville_departement_departement_code = d.departement_code "		
+			+ "WHERE obs.observation_validee = 1 and f.fiche_date BETWEEN ? AND ? "
+			+ "GROUP BY d.departement_nom, e.espece_nom ";
+	PreparedStatement EspecesParDepartement = connection.prepareStatement(statement); 
+	EspecesParDepartement.setDate(1,new java.sql.Date(date1.getTimeInMillis()));
+	EspecesParDepartement.setDate(2,new java.sql.Date(date2.getTimeInMillis()));	
+			
+	ResultSet rs = EspecesParDepartement.executeQuery();
+	
+	return rs;
+
+	
+}
+
+/** 
+ *   liste chronologique des diff�rents lieux prospect�s et, dans ces lieux, des diff�rentes esp�ces
+ *   observ�es avec d�tail des nombres et stade/sexe
+ */
+
+
+public static ResultSet calculeCarnetDeChasse(Map<String,String> info) throws SQLException {
+	
+	  
+	DataSource ds = DB.getDataSource();
+
+	Connection connection = ds.getConnection();
+	String statement = ""
+			+ "SELECT f.fiche_utm_utm, obs.observation_id, e.espece_nom, i.informations_complementaires_nombre_de_specimens, s.stade_sexe_intitule "
+			+ "FROM Observation obs "
+			+ "INNER JOIN Fiche f ON obs.observation_fiche_fiche_id = f.fiche_id "
+			+ "INNER JOIN Fiche_Has_Membre fhm ON fhm.fiche_fiche_id = f.fiche_id "
+			+ "INNER JOIN Membre m ON fhm.membre_membre_id = m.membre_id "
+			+ "INNER JOIN Espece e ON obs.observation_espece_espece_id = e.espece_id "
+			+ "INNER JOIN Informations_Complementaires i ON obs.observation_id = i.informations_complementaires_observation_observation_id "
+			+ "INNER JOIN Stade_sexe s ON i.informations_complementaires_stade_sexe_stade_sexe_id = s.stade_sexe_id "
+			+ "WHERE  m.membre_email = ? "
+			+ "GROUP BY f.fiche_utm_utm, obs.observation_id ";
+	PreparedStatement carnetDeChasse = connection.prepareStatement(statement); 
+	carnetDeChasse.setString(1,session("username"));
+			
+	ResultSet rs = carnetDeChasse.executeQuery();
+	
+	return rs;
+		
+	}
 	
 	
 	/**
@@ -760,16 +852,16 @@ private static ResultSet calculePhenologie(Map<String,String> info) throws Parse
 				case 80 : // Esp�ces par commune
 					// Pour une p�riode donn�e liste par commune des esp�ces renseign�es avec 
 					// le nombre des t�moignages de ces esp�ces
-					ResultSet especesParCommune = EspecesParCommune.calculeEspecesParCommune(info);
-					excelData = new EspecesParCommuneExcel(info,especesParCommune);
+					ResultSet especesParCommune = calculeEspecesParCommune(info);
+					excelData = ListeExportExcel.listeEspecesParCommune(info,especesParCommune);
 					message = buildMessage("Esp�ces par commune", info);
 					break;
 
 				case 90 : // Esp�ces par d�partement
 					// Pour une p�riode donn�e liste par d�partement des esp�ces renseign�es 
 					// avec le nombre des t�moignages de ces esp�ces</td>
-					ResultSet especesParDepartement = EspecesParDepartement.calculeEspecesParDepartement(info);
-					excelData = new EspecesParDepartementExcel(info,especesParDepartement);
+					ResultSet especesParDepartement = calculeEspecesParDepartement(info);
+					excelData = ListeExportExcel.listeEspecesParDepartement(info,especesParDepartement);
 					message = buildMessage("Esp�ces par d�partement", info);
 					break;
 
@@ -787,7 +879,7 @@ private static ResultSet calculePhenologie(Map<String,String> info) throws Parse
 					// liste chronologique des diff�rents lieux prospect�s et, dans ces lieux, 
 					// des diff�rentes esp�ces observ�es avec d�tail des nombres et stade/sexe
 					ResultSet carnetDeChasse = CarnetDeChasse.calculeCarnetDeChasse(info);
-					excelData = new CarnetDeChasseExcel(info,carnetDeChasse);
+					excelData = ListeExportExcel.carnetDeChasse(info,carnetDeChasse);
 					message = buildMessage("Carnet de chasse de "+info.get("temoin"), info);
 					break;
 
