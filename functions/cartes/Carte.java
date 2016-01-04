@@ -22,6 +22,8 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
@@ -36,9 +38,12 @@ public class Carte {
 	private static final int[] Y_AXIS = {0,13,32,51,70,89,108,127,146,164,183,202,221,240,259,278,297,316,335,354,355};
 	private static final int RED = -61681;
 	private static final int WHITE = -1;
+	private String file_name;
 
 	public Carte() throws IOException{
 		carte = ImageIO.read(new File("public/images/carte.png"));
+		SimpleDateFormat date_format = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss");
+		file_name=date_format.format(Calendar.getInstance().getTime())+".png";
 	}
 	public Carte(HashMap<UTMS,Integer> observations) throws IOException{
 		this();
@@ -76,7 +81,7 @@ public class Carte {
 	}
 
 	public void writeToDisk() throws IOException{
-		File outputfile = new File("/tmp/saved.png");
+		File outputfile = new File("downloads/"+file_name);
 		ImageIO.write(carte, "png", outputfile);
 	}
 	public BufferedImage getImage() {
