@@ -394,7 +394,7 @@ public class ListeExportExcel extends Excel{
 	
 	public static ListeExportExcel listeEspecesParCommune(Map<String,String> info, ResultSet especesParCommune) throws IOException, SQLException{
 		ListeExportExcel theFile = new ListeExportExcel();
-		Sheet sheet = wb.createSheet("Especes par commune");
+		Sheet sheet = theFile.wb.createSheet("Especes par commune");
 
 		String titre = "Espèces trouvées par commune ";
 		
@@ -409,24 +409,24 @@ public class ListeExportExcel extends Excel{
 		rowHead.createCell(0).setCellValue("Commune");
 		rowHead.createCell(1).setCellValue("Espèces observées");
 
-		CellStyle cellStyleDate = wb.createCellStyle();
-		CreationHelper creationHelper = wb.getCreationHelper();
+		CellStyle cellStyleDate = theFile.wb.createCellStyle();
+		CreationHelper creationHelper = theFile.wb.getCreationHelper();
 		cellStyleDate.setDataFormat(creationHelper.createDataFormat().getFormat("dd/mm/yyyy"));
 		
-		EspecesParCommune.next();
-		String maille = EspecesParCommune.getString("c.ville_nom");
-		String espece = EspecesParCommune.getString("e.espece_nom");
-		String nombre = EspecesParCommune.getString("count(e.espece_nom)");
+		especesParCommune.next();
+		String maille = especesParCommune.getString("c.ville_nom");
+		String espece = especesParCommune.getString("e.espece_nom");
+		String nombre = especesParCommune.getString("count(e.espece_nom)");
 		Row row = sheet.createRow(2);
 		row.createCell(0).setCellValue(maille);
 		row.createCell(1).setCellValue(espece + " : " + nombre);
 		
 		int i = 3;
 		int j = 1;
-		while (EspecesParCommune.next()) {
-			String utm = EspecesParCommune.getString("c.ville_nom");
-			espece = EspecesParCommune.getString("e.espece_nom");
-			nombre = EspecesParCommune.getString("count(e.espece_nom)");
+		while (especesParCommune.next()) {
+			String utm = especesParCommune.getString("c.ville_nom");
+			espece = especesParCommune.getString("e.espece_nom");
+			nombre = especesParCommune.getString("count(e.espece_nom)");
 			
 			if (!utm.equals(maille)){
 				row = sheet.createRow(i);
@@ -450,7 +450,7 @@ public class ListeExportExcel extends Excel{
 	
 	public static ListeExportExcel listeEspecesParDepartement(Map<String,String> info, ResultSet especesParDepartement) throws IOException, SQLException{
 		ListeExportExcel theFile = new ListeExportExcel();
-		Sheet sheet = wb.createSheet("Especes par departement");
+		Sheet sheet = theFile.wb.createSheet("Especes par departement");
 
 		String titre = "Espèces trouvées par département ";
 		
@@ -465,24 +465,24 @@ public class ListeExportExcel extends Excel{
 		rowHead.createCell(0).setCellValue("Département");
 		rowHead.createCell(1).setCellValue("Espèces observées");
 
-		CellStyle cellStyleDate = wb.createCellStyle();
-		CreationHelper creationHelper = wb.getCreationHelper();
+		CellStyle cellStyleDate = theFile.wb.createCellStyle();
+		CreationHelper creationHelper = theFile.wb.getCreationHelper();
 		cellStyleDate.setDataFormat(creationHelper.createDataFormat().getFormat("dd/mm/yyyy"));
 		
-		EspecesParDepartement.next();
-		String maille = EspecesParDepartement.getString("d.departement_nom");
-		String espece = EspecesParDepartement.getString("e.espece_nom");
-		String nombre = EspecesParDepartement.getString("count(e.espece_nom)");
+		especesParDepartement.next();
+		String maille = especesParDepartement.getString("d.departement_nom");
+		String espece = especesParDepartement.getString("e.espece_nom");
+		String nombre = especesParDepartement.getString("count(e.espece_nom)");
 		Row row = sheet.createRow(2);
 		row.createCell(0).setCellValue(maille);
 		row.createCell(1).setCellValue(espece + " : " + nombre);
 		
 		int i = 3;
 		int j = 1;
-		while (EspecesParDepartement.next()) {
-			String utm = EspecesParDepartement.getString("d.departement_nom");
-			espece = EspecesParDepartement.getString("e.espece_nom");
-			nombre = EspecesParDepartement.getString("count(e.espece_nom)");
+		while (especesParDepartement.next()) {
+			String utm = especesParDepartement.getString("d.departement_nom");
+			espece = especesParDepartement.getString("e.espece_nom");
+			nombre = especesParDepartement.getString("count(e.espece_nom)");
 			
 			if (!utm.equals(maille)){
 				row = sheet.createRow(i);
@@ -505,7 +505,7 @@ public class ListeExportExcel extends Excel{
 	
 	public static ListeExportExcel carnetDeChasse(Map<String,String> info, ResultSet carnetDeChasse) throws IOException, SQLException{
 		ListeExportExcel theFile = new ListeExportExcel();
-		Sheet sheet = wb.createSheet("Chronologie d'un témoin");
+		Sheet sheet = theFile.wb.createSheet("Chronologie d'un témoin");
 
 		String titre = "Chronologie de mes témoignages ";
 		
@@ -520,8 +520,8 @@ public class ListeExportExcel extends Excel{
 		rowHead.createCell(0).setCellValue("Maille");
 		rowHead.createCell(1).setCellValue("Espèces observées");
 
-		CellStyle cellStyleDate = wb.createCellStyle();
-		CreationHelper creationHelper = wb.getCreationHelper();
+		CellStyle cellStyleDate = theFile.wb.createCellStyle();
+		CreationHelper creationHelper = theFile.wb.getCreationHelper();
 		cellStyleDate.setDataFormat(creationHelper.createDataFormat().getFormat("dd/mm/yyyy"));
 		
 		carnetDeChasse.next();
