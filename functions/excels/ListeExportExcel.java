@@ -389,16 +389,181 @@ public class ListeExportExcel extends Excel{
 	
 	public static ListeExportExcel listeEspecesParCommune(Map<String,String> info, ResultSet especesParCommune) throws IOException, SQLException{
 		ListeExportExcel theFile = new ListeExportExcel();
+		Sheet sheet = theFile.wb.createSheet("Especes par commune");
+
+		String titre = "Espèces trouvées par commune ";
+		
+		sheet.createRow(0).createCell(0).setCellValue(titre);
+		sheet.addMergedRegion(new CellRangeAddress(
+				0, //first row (0-based)
+				0, //last row  (0-based)
+				0, //first column (0-based)
+				330  //last column  (0-based)
+				));
+		Row rowHead = sheet.createRow(1);
+		rowHead.createCell(0).setCellValue("Commune");
+		rowHead.createCell(1).setCellValue("Espèces observées");
+
+		CellStyle cellStyleDate = theFile.wb.createCellStyle();
+		CreationHelper creationHelper = theFile.wb.getCreationHelper();
+		cellStyleDate.setDataFormat(creationHelper.createDataFormat().getFormat("dd/mm/yyyy"));
+		
+		especesParCommune.next();
+		String maille = especesParCommune.getString("c.ville_nom");
+		String espece = especesParCommune.getString("e.espece_nom");
+		String nombre = especesParCommune.getString("count(e.espece_nom)");
+		Row row = sheet.createRow(2);
+		row.createCell(0).setCellValue(maille);
+		row.createCell(1).setCellValue(espece + " : " + nombre);
+		
+		int i = 3;
+		int j = 1;
+		while (especesParCommune.next()) {
+			String utm = especesParCommune.getString("c.ville_nom");
+			espece = especesParCommune.getString("e.espece_nom");
+			nombre = especesParCommune.getString("count(e.espece_nom)");
+			
+			if (!utm.equals(maille)){
+				row = sheet.createRow(i);
+				row.createCell(0).setCellValue(utm);
+				row.createCell(1).setCellValue(espece + " : " + nombre);
+				i++;
+				j=2;
+				maille = utm;		
+			} else {
+				row.createCell(j).setCellValue(espece + " : " + nombre);
+				j++;
+			}
+
+		}
+
+		for(int k = 0; k<329 ; k++)
+			sheet.autoSizeColumn(k);
+	
 		return theFile;
 	}
 	
 	public static ListeExportExcel listeEspecesParDepartement(Map<String,String> info, ResultSet especesParDepartement) throws IOException, SQLException{
 		ListeExportExcel theFile = new ListeExportExcel();
+		Sheet sheet = theFile.wb.createSheet("Especes par departement");
+
+		String titre = "Espèces trouvées par département ";
+		
+		sheet.createRow(0).createCell(0).setCellValue(titre);
+		sheet.addMergedRegion(new CellRangeAddress(
+				0, //first row (0-based)
+				0, //last row  (0-based)
+				0, //first column (0-based)
+				330  //last column  (0-based)
+				));
+		Row rowHead = sheet.createRow(1);
+		rowHead.createCell(0).setCellValue("Département");
+		rowHead.createCell(1).setCellValue("Espèces observées");
+
+		CellStyle cellStyleDate = theFile.wb.createCellStyle();
+		CreationHelper creationHelper = theFile.wb.getCreationHelper();
+		cellStyleDate.setDataFormat(creationHelper.createDataFormat().getFormat("dd/mm/yyyy"));
+		
+		especesParDepartement.next();
+		String maille = especesParDepartement.getString("d.departement_nom");
+		String espece = especesParDepartement.getString("e.espece_nom");
+		String nombre = especesParDepartement.getString("count(e.espece_nom)");
+		Row row = sheet.createRow(2);
+		row.createCell(0).setCellValue(maille);
+		row.createCell(1).setCellValue(espece + " : " + nombre);
+		
+		int i = 3;
+		int j = 1;
+		while (especesParDepartement.next()) {
+			String utm = especesParDepartement.getString("d.departement_nom");
+			espece = especesParDepartement.getString("e.espece_nom");
+			nombre = especesParDepartement.getString("count(e.espece_nom)");
+			
+			if (!utm.equals(maille)){
+				row = sheet.createRow(i);
+				row.createCell(0).setCellValue(utm);
+				row.createCell(1).setCellValue(espece + " : " + nombre);
+				i++;
+				j=2;
+				maille = utm;		
+			} else {
+				row.createCell(j).setCellValue(espece + " : " + nombre);
+				j++;
+			}
+
+		}
+
+		for(int k = 0; k<329 ; k++)
+			sheet.autoSizeColumn(k);
 		return theFile;
 	}
 	
 	public static ListeExportExcel carnetDeChasse(Map<String,String> info, ResultSet carnetDeChasse) throws IOException, SQLException{
 		ListeExportExcel theFile = new ListeExportExcel();
+		Sheet sheet = theFile.wb.createSheet("Chronologie d'un témoin");
+
+		String titre = "Chronologie de mes témoignages ";
+		
+		sheet.createRow(0).createCell(0).setCellValue(titre);
+		sheet.addMergedRegion(new CellRangeAddress(
+				0, //first row (0-based)
+				0, //last row  (0-based)
+				0, //first column (0-based)
+				24  //last column  (0-based)
+				));
+		Row rowHead = sheet.createRow(1);
+		rowHead.createCell(0).setCellValue("Maille");
+		rowHead.createCell(1).setCellValue("Espèces observées");
+
+		CellStyle cellStyleDate = theFile.wb.createCellStyle();
+		CreationHelper creationHelper = theFile.wb.getCreationHelper();
+		cellStyleDate.setDataFormat(creationHelper.createDataFormat().getFormat("dd/mm/yyyy"));
+		
+		carnetDeChasse.next();
+		String maille = carnetDeChasse.getString("f.fiche_utm_utm");
+		if (maille == null){
+			maille = "Maille inconnue";
+		}
+		String espece = carnetDeChasse.getString("e.espece_nom");
+		String nombre = carnetDeChasse.getString("i.informations_complementaires_nombre_de_specimens");
+		if (nombre == null){
+			nombre = "";
+		}
+		String stade = carnetDeChasse.getString("s.stade_sexe_intitule");
+		Row row = sheet.createRow(2);
+		row.createCell(0).setCellValue(maille);
+		row.createCell(1).setCellValue(espece + " : " + nombre + " " + stade);
+		
+		int i = 3;
+		int j = 1;
+		while (carnetDeChasse.next()) {
+			String utm = carnetDeChasse.getString("f.fiche_utm_utm");
+			if (utm == null){
+				utm = "Maille inconnue";
+			}
+			espece = carnetDeChasse.getString("e.espece_nom");
+			nombre = carnetDeChasse.getString("i.informations_complementaires_nombre_de_specimens");
+			if (nombre == null){
+				nombre = "";
+			}
+			stade = carnetDeChasse.getString("s.stade_sexe_intitule");
+			
+			if (!utm.equals(maille)){
+				row = sheet.createRow(i);
+				row.createCell(0).setCellValue(utm);
+				row.createCell(1).setCellValue(espece + " : " + nombre + " " + stade);
+				i++;
+				j=2;
+				maille = utm;		
+			} else {
+				row.createCell(j).setCellValue(espece + " : " + nombre + " " + stade);
+				j++;
+			}
+
+		}
+
+		for(int k = 0; k<24 ; k++)
+			sheet.autoSizeColumn(k);
 		return theFile;
 	}
 	

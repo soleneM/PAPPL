@@ -940,7 +940,7 @@ public static Map<String,Integer> calculeHistorique(Map<String,String> info) thr
 				case 110 : // Carnet de Chasse
 					// liste chronologique des diff�rents lieux prospect�s et, dans ces lieux, 
 					// des diff�rentes esp�ces observ�es avec d�tail des nombres et stade/sexe
-					ResultSet carnetDeChasse = CarnetDeChasse.calculeCarnetDeChasse(info);
+					ResultSet carnetDeChasse = calculeCarnetDeChasse(info);
 					excelData = ListeExportExcel.carnetDeChasse(info,carnetDeChasse);
 					message = buildMessage("Carnet de chasse de "+info.get("temoin"), info);
 					break;
