@@ -37,11 +37,14 @@ public class HistoriqueExcel extends Excel {
 	public HistoriqueExcel(Map<String,String> info, Historique hde) throws IOException{
 		super();
 		Sheet sheet = wb.createSheet("Historique des temoignages");
+		/*
 		Espece espece = Espece.find.byId(Integer.parseInt(info.get("espece")));
 		Groupe sous_groupe = Groupe.find.byId(Integer.parseInt(info.get("sous_groupe")));
 		Groupe groupe = Groupe.find.byId(Integer.parseInt(info.get("groupe")));
 		String maille = info.get("maille");
+		*/
 		String titre = "Historique des temoignages ";
+		/*
 		if(espece!=null)
 			titre+="de "+espece.espece_nom;
 		else if(sous_groupe!=null)
@@ -50,6 +53,7 @@ public class HistoriqueExcel extends Excel {
 			titre+="de "+groupe;
 		if(!maille.equals(""))
 			titre+=" dans la maille "+maille;
+		 */
 		titre+=" ("+hde.getSomme()+" témoignages, "+hde.nbTemoignagesRejetes+" témoignages rejetés)";
 		sheet.createRow(0).createCell(0).setCellValue(titre);
 		sheet.addMergedRegion(new CellRangeAddress(

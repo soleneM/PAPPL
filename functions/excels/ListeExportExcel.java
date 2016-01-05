@@ -52,11 +52,6 @@ public class ListeExportExcel extends Excel{
 		super();
 	}
 	
-	private static String formateDate(Date uneDate) {
-		Calendar c = Calendar.getInstance();
-		SimpleDateFormat date_format = new SimpleDateFormat("dd/MM/yyyy");
-		return date_format.format(uneDate);
-	}
 	
 	public static ListeExportExcel listeDesTemoins(Map<String,String> info, ResultSet listeDesTemoins) throws IOException, SQLException{
 		ListeExportExcel theFile = new ListeExportExcel();
@@ -518,6 +513,9 @@ public class ListeExportExcel extends Excel{
 	public static ListeExportExcel observationsValidesExcel(Integer espece_id, String membre_nom, String orderBy, String dir, Integer groupe_id) throws ParseException, IOException {
 		ListeExportExcel theFile = new ListeExportExcel();
 		Sheet sheet = theFile.wb.createSheet("Liste d'observations");
+		
+		SimpleDateFormat date_format = new SimpleDateFormat("dd/MM/yyyy");
+
 
 		try {
 			DataSource ds = DB.getDataSource();
@@ -645,7 +643,7 @@ public class ListeExportExcel extends Excel{
 				sheet.getRow(i).getCell(2).setCellValue(rsListeObservations.getString("espece_nom"));
 				sheet.getRow(i).getCell(3).setCellValue(rsListeObservations.getString("observation_determinateur"));
 				sheet.getRow(i).getCell(4).setCellValue(rsListeObservations.getString("observation_commentaires"));
-				sheet.getRow(i).getCell(5).setCellValue(formateDate(rsListeObservations.getDate("fiche_date")));
+				sheet.getRow(i).getCell(5).setCellValue(date_format.format(rsListeObservations.getDate("fiche_date")));
 				sheet.getRow(i).getCell(5).setCellStyle(cellStyleDate);
 				sheet.getRow(i).getCell(6).setCellValue(rsListeObservations.getString("fiche_lieudit"));
 				
@@ -655,7 +653,7 @@ public class ListeExportExcel extends Excel{
 				}
 				sheet.getRow(i).getCell(8).setCellValue(rsListeObservations.getString("fiche_utm_utm"));
 				sheet.getRow(i).getCell(9).setCellValue(rsListeObservations.getString("fiche_memo"));
-				sheet.getRow(i).getCell(10).setCellValue(formateDate(rsListeObservations.getDate("fiche_date_soumission")));
+				sheet.getRow(i).getCell(10).setCellValue(date_format.format(rsListeObservations.getDate("fiche_date_soumission")));
 				sheet.getRow(i).getCell(12).setCellStyle(cellStyleDate);
 				
 				listeInfos.setInt(1, rsListeObservations.getInt("observation_id"));

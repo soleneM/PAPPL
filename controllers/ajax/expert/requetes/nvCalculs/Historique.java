@@ -74,7 +74,7 @@ public class Historique {
 			temp = temp1;
 			temp1 = temp1 + 20;
 		}
-			histogramme[diff]=0;
+			//histogramme[diff]=0;
 			legende.put(diff, "avant "+max);
 				
 		
@@ -89,12 +89,16 @@ public class Historique {
 				histogramme[periode]++;
 		}
 		
+		
 		//Génération du titre
+	
 		Espece espece = Espece.find.byId(Integer.parseInt(info.get("espece")));
 		Groupe sous_groupe = Groupe.find.byId(Integer.parseInt(info.get("sous_groupe")));
 		Groupe groupe = Groupe.find.byId(Integer.parseInt(info.get("groupe")));
 		String maille = info.get("maille");
+		
 		titre = "Historique des temoignages";
+		
 		if(espece!=null)
 			titre+=" de "+espece.espece_nom;
 		else if(sous_groupe!=null)
@@ -103,6 +107,7 @@ public class Historique {
 			titre+=" de "+groupe;
 		if(!maille.equals(""))
 			titre+=" dans la maille "+maille;
+		
 	}
 	
 	/**

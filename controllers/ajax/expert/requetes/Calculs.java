@@ -46,6 +46,7 @@ import controllers.ajax.expert.requetes.nvCalculs.EspecesParDepartement;
 import controllers.ajax.expert.requetes.nvCalculs.Historique;
 import functions.cartes.Carte;
 import functions.excels.Excel;
+import functions.excels.HistogrammeExportExcel;
 import functions.excels.ListeExportExcel;
 
 import functions.excels.exports.HistoriqueDesEspecesExcel;
@@ -704,13 +705,13 @@ public static ResultSet calculeCarnetDeChasse(Map<String,String> info) throws SQ
 	Connection connection = ds.getConnection();
 	String statement = ""
 			+ "SELECT f.fiche_utm_utm, obs.observation_id, e.espece_nom, i.informations_complementaires_nombre_de_specimens, s.stade_sexe_intitule "
-			+ "FROM Observation obs "
-			+ "INNER JOIN Fiche f ON obs.observation_fiche_fiche_id = f.fiche_id "
-			+ "INNER JOIN Fiche_Has_Membre fhm ON fhm.fiche_fiche_id = f.fiche_id "
-			+ "INNER JOIN Membre m ON fhm.membre_membre_id = m.membre_id "
-			+ "INNER JOIN Espece e ON obs.observation_espece_espece_id = e.espece_id "
-			+ "INNER JOIN Informations_Complementaires i ON obs.observation_id = i.informations_complementaires_observation_observation_id "
-			+ "INNER JOIN Stade_sexe s ON i.informations_complementaires_stade_sexe_stade_sexe_id = s.stade_sexe_id "
+			+ "FROM observation obs "
+			+ "INNER JOIN fiche f ON obs.observation_fiche_fiche_id = f.fiche_id "
+			+ "INNER JOIN fiche_has_membre fhm ON fhm.fiche_fiche_id = f.fiche_id "
+			+ "INNER JOIN membre m ON fhm.membre_membre_id = m.membre_id "
+			+ "INNER JOIN espece e ON obs.observation_espece_espece_id = e.espece_id "
+			+ "INNER JOIN informations_complementaires i ON obs.observation_id = i.informations_complementaires_observation_observation_id "
+			+ "INNER JOIN stade_sexe s ON i.informations_complementaires_stade_sexe_stade_sexe_id = s.stade_sexe_id "
 			+ "WHERE  m.membre_email = ? "
 			+ "GROUP BY f.fiche_utm_utm, obs.observation_id ";
 	PreparedStatement carnetDeChasse = connection.prepareStatement(statement); 
@@ -720,6 +721,67 @@ public static ResultSet calculeCarnetDeChasse(Map<String,String> info) throws SQ
 	
 	return rs;
 		
+	}
+
+public static Map<String,Integer> calculeHistorique(Map<String,String> info) throws SQLException, ParseException {
+	DataSource ds = DB.getDataSource();
+	Connection connection = ds.getConnection();
+	PreparedStatement historique;
+	ArrayList<Object> listeParams = new ArrayList<Object>();
+
+	String statement = "";
+	statement = "SELECT fiche.fiche_date, observation.observation_id"
+			+ " FROM observation"
+			+ " INNER JOIN fiche ON observation.observation_fiche_fiche_id = fiche.fiche_id"
+			+ " WHERE observation.observation_validee = 1"
+			+ " ORDER BY fiche.fiche_date";
+
+	historique = connection.prepareStatement(statement); 
+	ResultSet rs = historique.executeQuery();
+	
+	ArrayList<String> yearTemoignages = new ArrayList<>();
+	while(rs.next()) {
+		String date = rs.getString("fiche.fiche_date");
+		if (! date.equals(null)) {
+			char[] dateCharArray = date.toCharArray();
+			String yearString = "";
+			yearString += dateCharArray[0];
+			yearString += dateCharArray[1];
+			yearString += dateCharArray[2];
+			yearString += dateCharArray[3];
+			yearTemoignages.add(yearString);
+		}
+	}
+	
+	int nbTem = yearTemoignages.size();
+	int yearMin = Integer.parseInt(yearTemoignages.get(0));
+	int yearMax = Integer.parseInt(yearTemoignages.get(nbTem-1));
+	
+	int nbBarresHisto = 0;
+	if((yearMax-yearMin) % 20 == 0){
+		nbBarresHisto = (yearMax-yearMin)/20;
+	}else{
+		nbBarresHisto = ((yearMax-yearMin)/20 + 1);
+	}
+	
+	int[] histogrammeData = new int[nbBarresHisto];
+	int year;
+	for (String str : yearTemoignages) {
+		year = Integer.parseInt(str);
+		histogrammeData[(year-yearMin)/20]++;
+	}
+	
+	Map<String,Integer> histogramme = new HashMap<>();
+	int yearTempMin;
+	int yearTempMax;
+	for (int i=0; i<nbBarresHisto; i++) {
+		yearTempMin = yearMin+i*20;
+		yearTempMax = yearMin+i*20+19;
+		String legende = ""+yearTempMin+"-"+yearTempMax;
+		histogramme.put(legende, histogrammeData[i]);
+	}
+	
+	return histogramme;
 	}
 	
 	
@@ -896,51 +958,10 @@ public static ResultSet calculeCarnetDeChasse(Map<String,String> info) throws SQ
 
 				case 130 : // Historique
 					// Graphique par p�riode de 20 ans du nombre de t�moignages
-					Historique historique = new Historique(info);
-					excelData = new HistoriqueExcel(info,historique);
+					Map<String,Integer> histogrammeHistorique = calculeHistorique(info);
+					excelData = HistogrammeExportExcel.historique(histogrammeHistorique);
 					message = buildMessage("Historique", info);
 				break;
-				/*
-				// -------------------------------------------------------------------------------------------
-				// OLD STATS
-				case 1001 :	// temoins par periode
-					List<TemoinsParPeriode> temoins = TemoinsParPeriode.calculeTemoinsParPeriode(info);
-					excelData = new TemoinsParPeriodeExcel(info,temoins);
-					message = buildMessage("T�moignages pour "+info.get("temoin"), info);
-					break;
-				case 1002 :	// Historique des especes selectionn�es
-					HistoriqueDesEspeces hde = new HistoriqueDesEspeces(info);
-					excelData = new HistoriqueDesEspecesExcel(info,hde);
-				break;
-				case 1003 : // Chronologie d'un t�moin
-					ChronologieDUnTemoin cdut = new ChronologieDUnTemoin(info);
-					excelData = new ChronologieDUnTemoinExcel(info,cdut);
-					message = "Chronologie d'un t�moin";
-				break;
-				case 1004 : // Mailles par p�riode
-					MaillesParPeriode mpp = new MaillesParPeriode(info);
-					excelData = new MaillesParPeriodeExcel(info,mpp);
-					message = "Mailles par p�riode";
-				break;
-				case 1005 : // Histogramme des stades
-					HistogrammeDesImagos hdi = new HistogrammeDesImagos(info);
-					excelData = new HistogrammeDesImagosExcel(info,hdi);
-				break;
-				case 1006 : // Mailles par esp�ces
-					MaillesParEspece mpe = new MaillesParEspece(info);
-					excelData = new MaillesParEspeceExcel(info,mpe);
-					message = "Mailles par esp�ces";
-				break;
-				case 1007 : // Carte somme
-					CarteSomme cs = new CarteSomme(info);
-					excelData = new CarteSommeExcel(info,cs);
-					message = "Carte somme";
-				break;
-				case 1008 : // Carte somme biodiversit�
-					CarteSommeBiodiversite csb = new CarteSommeBiodiversite(info);
-					excelData = new CarteSommeBiodiversiteExcel(info,csb);
-					message = "Carte somme biodiversit�";
-				break; */
 			}
 		}
 		if (excelData != null) {

@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import javax.imageio.ImageIO;
 
@@ -151,5 +152,11 @@ public class Excel {
 	    ));
 		this.collerLogo(page);
 	}
+/*	
+	private static String formateDate(Date uneDate) {
+		SimpleDateFormat date_format = new SimpleDateFormat("dd/MM/yyyy");
+		return date_format.format(uneDate);
+	}
+	*/
 	
 }
