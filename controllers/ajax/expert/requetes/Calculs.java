@@ -603,29 +603,41 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 /**
 * Donne des statistiques de phenologie: pour une periode donnee, et par espece, 
 * histogramme par decades (mois divise en trois) 
-* du nombre de temoignages(quel que soit le nmobre d'individus)
+* du nombre de temoignages
 * @return
 */
 	
 private static ResultSet calculePhenologie(Map<String,String> info) throws ParseException, SQLException {
-		
-		Calendar date1 = Calculs.getDataDate1(info);
-		Calendar date2 = Calculs.getDataDate2(info);
 		  
 		DataSource ds = DB.getDataSource();
-
+		ArrayList<Object> listeParams = new ArrayList<Object>();
+		
 		Connection connection = ds.getConnection();
 		String statement = ""
 				+ "SELECT COUNT(observation.observation_id), espece.espece_nom FROM espece"
-				+ "INNER JOIN observation ON observation.observation_espece_espece_id = espece.espece_id "
-				+ "INNER JOIN fiche ON observation.observation_fiche_fiche_id = fiche.fiche_id "
-				+ "WHERE fiche.fiche_date BETWEEN ? AND ? "
-				+ "GROUP BY espece.espece_nom ";
-		PreparedStatement especesParMaille = connection.prepareStatement(statement); 
-		especesParMaille.setDate(1,new java.sql.Date(date1.getTimeInMillis()));
-		especesParMaille.setDate(2,new java.sql.Date(date2.getTimeInMillis()));	
-				
-		ResultSet rs = especesParMaille.executeQuery();
+				+ " INNER JOIN observation ON observation.observation_espece_espece_id = espece.espece_id "
+				+ " INNER JOIN fiche ON observation.observation_fiche_fiche_id = fiche.fiche_id "
+				+ " INNER JOIN espece_is_in_groupement_local ON (espece_is_in_groupement_local.espece_espece_id = espece.espece_id)"
+				+ " INNER JOIN groupe ON (groupe.groupe_id = espece_is_in_groupement_local.groupe_groupe_id)"
+				+ " WHERE fiche.fiche_date BETWEEN ? AND ?"
+				+ " GROUP BY espece.espece_nom ";
+		
+		if ((info.get("sous_groupe") != null) && (! info.get("sous_groupe").equals(""))) {
+			statement += " AND groupe.groupe_id = ?";
+			listeParams.add(info.get("sous_groupe"));
+		} else if ((info.get("groupe") != null) && (! info.get("groupe").equals(""))) {
+			statement += " AND groupe.groupe_id = ?";
+			listeParams.add(info.get("groupe"));
+		}
+
+		Calendar date1 = getDataDate1(info);
+		Calendar date2 = getDataDate2(info);
+		listeParams.add(new java.sql.Date(date1.getTimeInMillis()));
+		listeParams.add(new java.sql.Date(date2.getTimeInMillis()));
+		
+		PreparedStatement phenologie = connection.prepareStatement(statement); 
+		setParams(phenologie, listeParams);		
+		ResultSet rs = phenologie.executeQuery();
 		
 		return rs;
 
