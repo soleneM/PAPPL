@@ -97,7 +97,7 @@ public class Calculs extends Controller {
 	
 	
 	/**
-	 * Calcule la liste des t�moignages par esp�ces sur une p�riode
+	 * Calcule la liste des temoignages par especes sur une periode
 	 * @return
 	 */
 	private static ResultSet calculeListeDesTemoignages(Map<String,String> info, int tailleUTM) throws ParseException, SQLException {
@@ -108,7 +108,7 @@ public class Calculs extends Controller {
 		ArrayList<Object> listeParams = new ArrayList<Object>();
 		String statement = "";
 		statement = "SELECT espece.espece_nom as espece_nom, membre.membre_nom as membre_nom, ";
-		// utilisation d'un switch au cas o� on voudrait utiliser uniquement les mailles 50x50, ou 100x100
+		// utilisation d'un switch au cas oe on voudrait utiliser uniquement les mailles 50x50, ou 100x100
 		switch (tailleUTM) {
 			case 20:
 				statement += "utms.maille20x20, f.fiche_Date";
@@ -184,7 +184,7 @@ public class Calculs extends Controller {
 
 		ArrayList<Object> listeParams = new ArrayList<Object>();
 		String statement = "";
-		// utilisation d'un switch au cas o� on voudrait utiliser uniquement les mailles 50x50, ou 100x100
+		// utilisation d'un switch au cas oe on voudrait utiliser uniquement les mailles 50x50, ou 100x100
 		switch (tailleUTM) {
 			case 20:
 				statement += "SELECT utms.maille20x20, COUNT(f.fiche_Date) AS nbtem";
@@ -268,7 +268,7 @@ public class Calculs extends Controller {
 	}
 	
 	/**
-	 * Calcule la somme des esp�ces t�moign�es par maille sur une p�riode pour un groupe ou sous-groupe d�fini
+	 * Calcule la somme des especes temoignees par maille sur une periode pour un groupe ou sous-groupe defini
 	 * @param info
 	 * @param tailleUTM
 	 * @return
@@ -421,7 +421,7 @@ public class Calculs extends Controller {
 	}
 
 	/**
-	 * Calcule la liste des t�moins et le nombre de t�moignages sur une p�riode
+	 * Calcule la liste des temoins et le nombre de temoignages sur une periode
 	 * @return
 	 */
 	private static ResultSet calculeListeDesTemoins(Map<String,String> info) throws ParseException, SQLException {
@@ -456,7 +456,7 @@ public class Calculs extends Controller {
 	}
 	
 	/**
-	 * Calcule la liste des esp�ces observ�es et le nombre de mailles renseign�es
+	 * Calcule la liste des especes observees et le nombre de mailles renseignees
 	 * @return
 	 */
 	private static ResultSet calculeListeDesEspeces(Map<String,String> info) throws ParseException, SQLException {
@@ -624,14 +624,77 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 * @return
 */
 	
-private static ResultSet calculePhenologie(Map<String,String> info) throws ParseException, SQLException {
-		  
+private static Map<String,Integer> calculePhenologie(Map<String,String> info) throws ParseException, SQLException {
+/*
+ * public static Map<String,Integer> calculeHistorique(Map<String,String> info) throws SQLException, ParseException {
+	DataSource ds = DB.getDataSource();
+	Connection connection = ds.getConnection();
+	PreparedStatement historique;
+	ArrayList<Object> listeParams = new ArrayList<Object>();
+
+	String statement = "";
+	statement = "SELECT fiche.fiche_date, observation.observation_id"
+			+ " FROM observation"
+			+ " INNER JOIN fiche ON observation.observation_fiche_fiche_id = fiche.fiche_id"
+			+ " WHERE observation.observation_validee = 1"
+			+ " ORDER BY fiche.fiche_date";
+
+	historique = connection.prepareStatement(statement); 
+	ResultSet rs = historique.executeQuery();
+	
+	ArrayList<String> yearTemoignages = new ArrayList<>();
+	while(rs.next()) {
+		String date = rs.getString("fiche.fiche_date");
+		if (! date.equals(null)) {
+			char[] dateCharArray = date.toCharArray();
+			String yearString = "";
+			yearString += dateCharArray[0];
+			yearString += dateCharArray[1];
+			yearString += dateCharArray[2];
+			yearString += dateCharArray[3];
+			yearTemoignages.add(yearString);
+		}
+	}
+	
+	int nbTem = yearTemoignages.size();
+	int yearMin = Integer.parseInt(yearTemoignages.get(0));
+	int yearMax = Integer.parseInt(yearTemoignages.get(nbTem-1));
+	
+	int nbBarresHisto = 0;
+	if((yearMax-yearMin) % 20 == 0){
+		nbBarresHisto = (yearMax-yearMin)/20;
+	}else{
+		nbBarresHisto = ((yearMax-yearMin)/20 + 1);
+	}
+	
+	int[] histogrammeData = new int[nbBarresHisto];
+	int year;
+	for (String str : yearTemoignages) {
+		year = Integer.parseInt(str);
+		histogrammeData[(year-yearMin)/20]++;
+	}
+	
+	Map<String,Integer> histogramme = new HashMap<>();
+	int yearTempMin;
+	int yearTempMax;
+	for (int i=0; i<nbBarresHisto; i++) {
+		yearTempMin = yearMin+i*20;
+		yearTempMax = yearMin+i*20+19;
+		String legende = ""+yearTempMin+"-"+yearTempMax;
+		histogramme.put(legende, histogrammeData[i]);
+	}
+	
+	connection.close();
+	
+	return histogramme;
+	}
+ */
 		DataSource ds = DB.getDataSource();
 		ArrayList<Object> listeParams = new ArrayList<Object>();
 		
 		Connection connection = ds.getConnection();
 		String statement = ""
-				+ "SELECT COUNT(observation.observation_id), espece.espece_nom FROM espece"
+				+ "SELECT fiche.fiche_date,COUNT(observation.observation_id), espece.espece_nom FROM espece"
 				+ " INNER JOIN observation ON observation.observation_espece_espece_id = espece.espece_id "
 				+ " INNER JOIN fiche ON observation.observation_fiche_fiche_id = fiche.fiche_id "
 				+ " INNER JOIN espece_is_in_groupement_local ON (espece_is_in_groupement_local.espece_espece_id = espece.espece_id)"
@@ -656,14 +719,16 @@ private static ResultSet calculePhenologie(Map<String,String> info) throws Parse
 		setParams(phenologie, listeParams);		
 		ResultSet rs = phenologie.executeQuery();
 		
+		Map<String,Integer> histogramme = new HashMap<>();
+		
 		connection.close();
 		
-		return rs;
+		return histogramme;
 
 }
 
 /** 
- *  Pour une p�riode donn�e liste par commune des esp�ces renseign�es avec le nombre des t�moignages de ces esp�ces
+ *  Pour une periode donnee liste par commune des especes renseignees avec le nombre des temoignages de ces especes
  */
 public static ResultSet calculeEspecesParCommune(Map<String,String> info) throws ParseException, SQLException {
 	
@@ -694,7 +759,7 @@ public static ResultSet calculeEspecesParCommune(Map<String,String> info) throws
 }
 
 /** 
- *  Pour une p�riode donn�e liste par d�partement des esp�ces renseign�es avec le nombre des t�moignages de ces esp�ces
+ *  Pour une periode donnee liste par departement des especes renseignees avec le nombre des temoignages de ces especes
  */
 
 public static ResultSet calculeEspecesParDepartement(Map<String,String> info) throws ParseException, SQLException {
@@ -727,8 +792,8 @@ public static ResultSet calculeEspecesParDepartement(Map<String,String> info) th
 }
 
 /** 
- *   liste chronologique des diff�rents lieux prospect�s et, dans ces lieux, des diff�rentes esp�ces
- *   observ�es avec d�tail des nombres et stade/sexe
+ *   liste chronologique des differents lieux prospectes et, dans ces lieux, des differentes especes
+ *   observees avec detail des nombres et stade/sexe
  */
 
 
@@ -825,7 +890,7 @@ public static Map<String,Integer> calculeHistorique(Map<String,String> info) thr
 	
 	
 	/**
-	 * Etablit le message � afficher
+	 * Etablit le message e afficher
 	 * @param titre : le titre du message
 	 * @param info : la liste des informations de construction du fichier Excel
 	 * @return
@@ -854,7 +919,7 @@ public static Map<String,Integer> calculeHistorique(Map<String,String> info) thr
 	}
 	
 	/**
-	 * Exporte les donn�es dans un fichier Excel
+	 * Exporte les donnees dans un fichier Excel
 	 * @return
 	 */
 	public static Result exportDonnees() throws ParseException, IOException, SQLException{
@@ -870,35 +935,35 @@ public static Map<String,Integer> calculeHistorique(Map<String,String> info) thr
 			StringBuilder temp = new StringBuilder();
 
 			switch (typeStat) {
-				case 10 : // Carte par esp�ce
-					// Pour une p�riode donn�e, et par esp�ce, liste des premiers t�moignages 
-					// de chaque maille (maille, index, date, t�moin(s)) avec carte du nombre 
-					// de t�moignages par mailles
+				case 10 : // Carte par espece
+					// Pour une periode donnee, et par espece, liste des premiers temoignages 
+					// de chaque maille (maille, index, date, temoin(s)) avec carte du nombre 
+					// de temoignages par mailles
 					ResultSet listeTemoignages = calculeListeDesTemoignages(info,0);
 					excelData = ListeExportExcel.listeDesTemoignages(info,listeTemoignages,0);
 					carteData = calculeCarteTemoignages(info,0);
 					carteImage = new Carte(carteData,0);
 					carteImage.writeToDisk();
-					message = buildMessage("Carte par esp�ces", info);
+					message = buildMessage("Carte par especes", info);
 
 				break;
 
-				case 20 : // Carte 20x20 par esp�ce
-					// Pour une p�riode donn�e, et par esp�ce, liste des premiers t�moignages
-					// de chaque maille UTM 20km X 20km (maille, index, date, t�moin(s)) avec
-					// carte du nombre de t�moignages par mailles
+				case 20 : // Carte 20x20 par espece
+					// Pour une periode donnee, et par espece, liste des premiers temoignages
+					// de chaque maille UTM 20km X 20km (maille, index, date, temoin(s)) avec
+					// carte du nombre de temoignages par mailles
 					ResultSet listeTemoignagesUTM20 = calculeListeDesTemoignages(info,20);
 					excelData = ListeExportExcel.listeDesTemoignages(info,listeTemoignagesUTM20,20);
 					carteData = calculeCarteTemoignages(info,20);
 					carteImage = new Carte(carteData,20);
 					carteImage.writeToDisk();
-					message = buildMessage("Carte 20x20 par esp�ces", info);
+					message = buildMessage("Carte 20x20 par especes", info);
 
 				break;
 
 				case 30 : // Carte somme
-					// Pour une p�riode donn�e, et pour toutes les esp�ces du groupe ou du 
-					// sous-groupe choisi, carte du nombre d'esp�ces t�moign�es par maille
+					// Pour une periode donnee, et pour toutes les especes du groupe ou du 
+					// sous-groupe choisi, carte du nombre d'especes temoignees par maille
 					ResultSet sommeEspeces = calculeSommeEspeces(info,0);
 					excelData = ListeExportExcel.sommeEspeces(info,sommeEspeces,0);
 					carteData = calculeCarteSommeEspeces(info,0);
@@ -909,8 +974,8 @@ public static Map<String,Integer> calculeHistorique(Map<String,String> info) thr
 				break;
 
 				case 40 : // Carte somme 20x20
-					// Pour une p�riode donn�e, et pour toutes les esp�ces du groupe ou du 
-					// sous-groupe choisi, carte du nombre d'esp�ces t�moign�es par maille 
+					// Pour une periode donnee, et pour toutes les especes du groupe ou du 
+					// sous-groupe choisi, carte du nombre d'especes temoignees par maille 
 					// UTM 20km X 20km
 					ResultSet sommeEspecesUTM20 = calculeSommeEspeces(info,20);
 					excelData = ListeExportExcel.sommeEspeces(info,sommeEspecesUTM20,20);
@@ -920,66 +985,65 @@ public static Map<String,Integer> calculeHistorique(Map<String,String> info) thr
 					message = buildMessage("Carte somme 20x20", info);
 				break;
 
-				case 50 : // Liste des t�moins
-					// Liste alphab�tique des t�moins pour une p�riode donn�e
+				case 50 : // Liste des temoins
+					// Liste alphabetique des temoins pour une periode donnee
 					ResultSet listeTemoins = calculeListeDesTemoins(info);
 					excelData = ListeExportExcel.listeDesTemoins(info,listeTemoins);
-					message = buildMessage("Liste des t�moins", info);
+					message = buildMessage("Liste des temoins", info);
 					break;
 
-				case 60 : // Liste des esp�ces
-					// Liste des esp�ces par ordre syst�matique pour une p�riode donn�e avec 
-					// le nombre de mailles renseign�es
+				case 60 : // Liste des especes
+					// Liste des especes par ordre systematique pour une periode donnee avec 
+					// le nombre de mailles renseignees
 					ResultSet listeEspeces = calculeListeDesEspeces(info);
 					excelData = ListeExportExcel.listeDesEspeces(info,listeEspeces);
-					message = buildMessage("Liste des esp�ces", info);
+					message = buildMessage("Liste des especes", info);
 					break;
 
-				case 70 : // Esp�ces par maille(s)
-					// Pour une p�riode donn�e liste maille par maille des esp�ces renseign�es 
-					// avec le nombre des t�moignages de ces esp�ces
+				case 70 : // Especes par maille(s)
+					// Pour une periode donnee liste maille par maille des especes renseignees 
+					// avec le nombre des temoignages de ces especes
 					ResultSet especesParMaille = calculeEspecesParMaille(info);
 					excelData = ListeExportExcel.listeEspecesParMaille(info,especesParMaille);
-					message = buildMessage("Esp�ces par maille", info);
+					message = buildMessage("Especes par maille", info);
 				break;
 
-				case 80 : // Esp�ces par commune
-					// Pour une p�riode donn�e liste par commune des esp�ces renseign�es avec 
-					// le nombre des t�moignages de ces esp�ces
+				case 80 : // Especes par commune
+					// Pour une periode donnee liste par commune des especes renseignees avec 
+					// le nombre des temoignages de ces especes
 					ResultSet especesParCommune = calculeEspecesParCommune(info);
 					excelData = ListeExportExcel.listeEspecesParCommune(info,especesParCommune);
-					message = buildMessage("Esp�ces par commune", info);
+					message = buildMessage("Especes par commune", info);
 					break;
 
-				case 90 : // Esp�ces par d�partement
-					// Pour une p�riode donn�e liste par d�partement des esp�ces renseign�es 
-					// avec le nombre des t�moignages de ces esp�ces</td>
+				case 90 : // Especes par departement
+					// Pour une periode donnee liste par departement des especes renseignees 
+					// avec le nombre des temoignages de ces especes</td>
 					ResultSet especesParDepartement = calculeEspecesParDepartement(info);
 					excelData = ListeExportExcel.listeEspecesParDepartement(info,especesParDepartement);
-					message = buildMessage("Esp�ces par d�partement", info);
+					message = buildMessage("Especes par departement", info);
 					break;
 
 				case 100 : // Phenologie
 					// Pour une periode donnee, et par espece, histogramme par decades 
 					// (mois divises en trois) du nombre de temoignages (quels que soient 
 					// le nombre d'individus)
-					ResultSet phenologie = calculePhenologie(info);
-					excelData = ListeExportExcel.phenologie(info,phenologie);
+					Map<String,Integer> histogrammePhenologie = calculePhenologie(info);
+					excelData = HistogrammeExportExcel.phenologie(info,histogrammePhenologie);
 					message = buildMessage("Phenologie", info);
 				break;
 				
-
 				case 110 : // Carnet de Chasse
-					// liste chronologique des diff�rents lieux prospect�s et, dans ces lieux, 
-					// des diff�rentes esp�ces observ�es avec d�tail des nombres et stade/sexe
+					// liste chronologique des differents lieux prospectes et, dans ces lieux, 
+					// des differentes especes observees avec detail des nombres et stade/sexe
 					ResultSet carnetDeChasse = calculeCarnetDeChasse(info);
 					excelData = ListeExportExcel.carnetDeChasse(info,carnetDeChasse);
 					message = buildMessage("Carnet de chasse de "+info.get("temoin"), info);
 					break;
 
 				case 120 : // Carte des observations
-					// Pour un t�moin donn�, carte du nombre d'esp�ces diff�rentes par 
-					// mailles prospect�es
+					// Pour un temoin donne, carte du nombre d'especes differentes par 
+					// mailles prospectees
 					ResultSet listeObservations = calculeListeDesObservations(info);
 					excelData = ListeExportExcel.listeDesObservations(info,listeObservations);
 					carteData = calculeCarteDesObservations(info);
@@ -989,7 +1053,7 @@ public static Map<String,Integer> calculeHistorique(Map<String,String> info) thr
 					break;
 
 				case 130 : // Historique
-					// Graphique par p�riode de 20 ans du nombre de t�moignages
+					// Graphique par periode de 20 ans du nombre de temoignages
 					Map<String,Integer> histogrammeHistorique = calculeHistorique(info);
 					excelData = HistogrammeExportExcel.historique(histogrammeHistorique);
 					message = buildMessage("Historique", info);
@@ -1005,7 +1069,7 @@ public static Map<String,Integer> calculeHistorique(Map<String,String> info) thr
 	}
 	
 	/**
-	 * R�cup�re les param�tres du formulaire
+	 * Recupere les parametres du formulaire
 	 * et les charges dans une Map
 	 * @return
 	 */
