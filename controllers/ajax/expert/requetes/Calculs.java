@@ -95,7 +95,6 @@ import models.UTMS;
 
 public class Calculs extends Controller {
 	
-	
 	/**
 	 * Calcule la liste des temoignages par especes sur une periode
 	 * @return
@@ -623,7 +622,37 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 * du nombre de temoignages
 * @return
 */
-	
+
+// methode de calcul de periode pour une date. Methode utilisée dans phénologie.
+public static int periode(int date){
+	int periode=0;
+	if (date<=10){
+		periode=1;
+	}
+	if ((10<date) && (date<=21)){
+		periode=2;
+	}
+	if (21<date){
+		periode=3;
+	}
+	return periode;
+}
+
+// donne le nombre de périodes entre deux jours du même mois
+public static int periodeDeuxJours(int date1,int date2){
+	int nbrePeriodes=0;
+	if (periode(date1)==periode(date2)){
+		nbrePeriodes=1;
+	}
+	if (periode(date2)-periode(date1)==1){
+		nbrePeriodes=2;
+	}
+	if (periode(date2)-periode(date1)==2){
+		nbrePeriodes=3;
+	}
+	return nbrePeriodes;
+}
+
 private static Map<String,Integer> calculePhenologie(Map<String,String> info) throws ParseException, SQLException {
 
 		DataSource ds = DB.getDataSource();
@@ -631,13 +660,12 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 		
 		Connection connection = ds.getConnection();
 		String statement = ""
-				+ "SELECT fiche.fiche_date,COUNT(observation.observation_id), espece.espece_nom FROM espece"
+				+ "SELECT fiche.fiche_date,observation.observation_id, espece.espece_nom FROM espece"
 				+ " INNER JOIN observation ON observation.observation_espece_espece_id = espece.espece_id "
 				+ " INNER JOIN fiche ON observation.observation_fiche_fiche_id = fiche.fiche_id "
 				+ " INNER JOIN espece_is_in_groupement_local ON (espece_is_in_groupement_local.espece_espece_id = espece.espece_id)"
 				+ " INNER JOIN groupe ON (groupe.groupe_id = espece_is_in_groupement_local.groupe_groupe_id)"
-				+ " WHERE fiche.fiche_date BETWEEN ? AND ?"
-				+ " GROUP BY espece.espece_nom, fiche.fiche_date"
+				+ " WHERE observation.observation_validee = 1 AND fiche.fiche_date BETWEEN ? AND ?"
 				+ " ORDER BY fiche.fiche_date";
 		
 		if ((info.get("sous_groupe") != null) && (! info.get("sous_groupe").equals(""))) {
@@ -658,36 +686,61 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 		ResultSet rs = phenologie.executeQuery();
 		
 		// début copié historique
-		/*ArrayList<String> dateTemoignage = new ArrayList<>();
+		// pour faciliter le traitement des dates on créé trois ArrayList. 
+		// format d'une date de sortie de my sql yyyy-mm-dd
+		// Dans chacune on va faire figurer une année, un jour ou un mois.
+		// Une date complète correspond à yearTemoignage.get(i) + monthTemoignage.get(i)+ dayTemoignage.get(i);
+		ArrayList<String> yearTemoignage = new ArrayList<>();
+		ArrayList<String> monthTemoignage = new ArrayList<>();
+		ArrayList<String> dayTemoignage = new ArrayList<>();
 		while(rs.next()) {
 			String date = rs.getString("fiche.fiche_date");
 			if (! date.equals(null)) {
 				char[] dateCharArray = date.toCharArray();
 				String yearString = "";
+				String monthString ="";
+				String dayString = "";
 				yearString += dateCharArray[0];
 				yearString += dateCharArray[1];
 				yearString += dateCharArray[2];
 				yearString += dateCharArray[3];
-				dateTemoignage.add(yearString);
+				monthString += dateCharArray[5];
+				monthString += dateCharArray[6];
+				dayString += dateCharArray[8];
+				dayString += dateCharArray[9];
+				yearTemoignage.add(yearString);
+				monthTemoignage.add(monthString);
+				dayTemoignage.add(dayString);
 			}
 		}
 		
-		int nbTem = yearTemoignages.size();
-		int yearMin = Integer.parseInt(dateTemoignage.get(0));
-		int yearMax = Integer.parseInt(dateTemoignage.get(nbTem-1));
+		// on stocke les valeurs des jours et mois de début et de fin.
+		int nbTem = yearTemoignage.size();
+		int yearBegin = Integer.parseInt(yearTemoignage.get(0));
+		int yearEnd = Integer.parseInt(yearTemoignage.get(nbTem-1));
+		int monthBegin = Integer.parseInt(monthTemoignage.get(0));
+		int monthEnd = Integer.parseInt(monthTemoignage.get(nbTem-1));
+		int dayBegin = Integer.parseInt(dayTemoignage.get(0));
+		int dayEnd = Integer.parseInt(dayTemoignage.get(nbTem-1));
+		int periode1=10;
+	    int periode2=21;
 		
 		int nbBarresHisto = 0;
-		if((yearMax-yearMin) % 20 == 0){
-			nbBarresHisto = (yearMax-yearMin)/20;
+		
+		// calcul du nombre de périodes
+		
+				
+		if ((yearEnd-yearBegin) % 20 == 0){
+			nbBarresHisto = (yearEnd-yearBegin)/20;
 		}else{
-			nbBarresHisto = ((yearMax-yearMin)/20 + 1);
+			nbBarresHisto = ((yearEnd-yearBegin)/20 + 1);
 		}
 		
 		int[] histogrammeData = new int[nbBarresHisto];
 		int year;
-		for (String str : dateTemoignage) {
+		for (String str : yearTemoignage) {
 			year = Integer.parseInt(str);
-			histogrammeData[(year-yearMin)/20]++;
+			histogrammeData[(year-yearBegin)/20]++;
 		}
 		
 		Map<String,Integer> histogramme = new HashMap<>();
@@ -695,13 +748,13 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 		int yearTempMin;
 		int yearTempMax;
 		for (int i=0; i<nbBarresHisto; i++) {
-			yearTempMin = yearMin+i*20;
-			yearTempMax = yearMin+i*20+19;
+			yearTempMin = yearBegin+i*20;
+			yearTempMax = yearBegin+i*20+19;
 			String legende = ""+yearTempMin+"-"+yearTempMax;
 			histogramme.put(legende, histogrammeData[i]);
-		}*/
+		}
 		// fin copié historique
-		Map<String,Integer> histogramme = new HashMap<>();
+		
 		connection.close();
 		
 		return histogramme;
