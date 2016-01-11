@@ -28,7 +28,7 @@ public class HistogrammeExportExcel extends Excel{
 		HistogrammeExportExcel theFile = new HistogrammeExportExcel();
 		
 		Sheet sheet = theFile.wb.createSheet("Historique");
-		String titre = "Historique des tÃ©moignages par pÃ©riode de 20 ans";
+		String titre = "Historique des temoignages par periode de 20 ans";
 
 		sheet.createRow(0).createCell(0).setCellValue(titre);
 		sheet.addMergedRegion(new CellRangeAddress(
@@ -38,7 +38,7 @@ public class HistogrammeExportExcel extends Excel{
 	            12  //last column  (0-based)
 	    ));
 		Row row = sheet.createRow(1);
-		row.createCell(0).setCellValue("PÃ©riode");
+		row.createCell(0).setCellValue("Periode");
 		row.createCell(1).setCellValue("Nbr. tem.");
 		int i = 0;
 		ArrayList<String> periodeAsc = new ArrayList<>();
@@ -59,4 +59,58 @@ public class HistogrammeExportExcel extends Excel{
 		
 		return(theFile);
 	}
+	
+	// méthode pour exporter dans un excel l'histogramme de phénologie
+	public static HistogrammeExportExcel phenologie(Map<String,String> info, Map<String,Integer> histogrammePhenologie) throws IOException, SQLException{
+		HistogrammeExportExcel theFile = new HistogrammeExportExcel();
+		
+		Sheet sheet = theFile.wb.createSheet("Phenologie");
+		String titre = "Historique par décade du nombre de témoignages pour une groupe donné";
+		// ajout de la période dans le titre
+		if (! info.get("periode").equals("all")) {
+			String date1 = info.get("jour1")+"/"+info.get("mois1")+"/"+info.get("annee1");
+			String date2 = info.get("jour2")+"/"+info.get("mois2")+"/"+info.get("annee2");
+			titre+=" du "+date1+" au "+date2;
+		}
+		// ajout du groupe/sous-groupe/espèce dans le titre
+		if (! info.get("espece").equals("")) {
+			titre+=" pour l'espece "+info.get("espece");
+		} else if (! info.get("sous_groupe").equals("")) {
+			titre+=" pour le sous-groupe "+info.get("sous_groupe");
+		} else if (! info.get("groupe").equals("")) {
+			titre+=" pour le groupe "+info.get("groupe");
+		}
+		
+		
+
+		sheet.createRow(0).createCell(0).setCellValue(titre);
+		sheet.addMergedRegion(new CellRangeAddress(
+	            0, //first row (0-based)
+	            0, //last row  (0-based)
+	            0, //first column (0-based)
+	            12  //last column  (0-based)
+	    ));
+		Row row = sheet.createRow(1);
+		row.createCell(0).setCellValue("Periode");
+		row.createCell(1).setCellValue("Nbr. tem.");
+		int i = 0;
+		ArrayList<String> periodeAsc = new ArrayList<>();
+		for(String periode : histogrammePhenologie.keySet()){
+			periodeAsc.add(periode);
+		}
+		Collections.sort(periodeAsc);
+		for (String periode : periodeAsc) {	
+			row = sheet.createRow(i+2);
+			row.createCell(0);
+			row.createCell(1);
+			sheet.getRow(i+2).getCell(0).setCellValue(periode);
+			sheet.getRow(i+2).getCell(1).setCellValue(histogrammePhenologie.get(periode));
+			i++;
+		}
+		sheet.autoSizeColumn(0);
+		sheet.autoSizeColumn(1);
+		
+		return(theFile);
+	}
+	
 }
