@@ -123,7 +123,7 @@ public class ListeExportExcel extends Excel{
 		ListeExportExcel theFile = new ListeExportExcel();
 		Sheet sheet = theFile.wb.createSheet("Espèces par période");
 
-		String titre = "Liste des espèces observées"+crLf;
+		String titre = "Liste des especes observees"+crLf;
 		if (! info.get("periode").equals("all")) {
 			String date1 = info.get("jour1")+"/"+info.get("mois1")+"/"+info.get("annee1");
 			String date2 = info.get("jour2")+"/"+info.get("mois2")+"/"+info.get("annee2");
@@ -134,7 +134,7 @@ public class ListeExportExcel extends Excel{
 		int ligne = 7;
 		theFile.collerLogoEtTitre(page,titre);
 		Row rowHead = sheet.createRow(ligne);
-		rowHead.createCell(0).setCellValue("Espèce");
+		rowHead.createCell(0).setCellValue("Espece");
 		rowHead.createCell(1).setCellValue("Nbre mailles");
 		ligne++;
 		boolean ecritAGauche = true;
@@ -379,11 +379,6 @@ public class ListeExportExcel extends Excel{
 		for (int i = 1; i<4; i++) {
 			sheet.autoSizeColumn(i);
 		}
-		return theFile;
-	}
-	
-	public static ListeExportExcel phenologie(Map<String,String> info, ResultSet phenologie) throws IOException, SQLException{
-		ListeExportExcel theFile = new ListeExportExcel();
 		return theFile;
 	}
 	
