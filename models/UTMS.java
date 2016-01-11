@@ -18,13 +18,19 @@
 
 package models;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.sql.DataSource;
 
+import play.db.DB;
 import play.db.ebean.Model;
 
 @SuppressWarnings("serial")
@@ -57,31 +63,53 @@ public class UTMS extends Model {
 	/**
 	 * Convertie une string en liste de mailles UTM.
 	 * Si la string en argument est vide, renvoit toutes les mailles.
-	 * Si la string est une maille, renvoit la liste des maills utms 10x10 dans
+	 * Si la string est une maille, renvoit la liste des mailles utms 10x10 dans
 	 * cette maille.
 	 * Si la string ne correspond à rien, renvoie null.
 	 * @param maille
 	 * @return
+	 * @throws SQLException 
 	 */
 	public static List<UTMS> parseMaille(String maille) {
-		if(maille.equals(""))
-			return find.all();
-		List<UTMS> utms = new ArrayList<UTMS>();
-		UTMS utm = find.byId(maille);
-		if(utm!=null){
-			utms.add(utm);
-			return utms;
+		DataSource ds = DB.getDataSource();
+		Connection connection;
+		try {
+			connection = ds.getConnection();
+			String statement = "";
+			
+			if(maille.equals("")) {
+				statement += "SELECT utm, maille20x20, maille50x50, maille100x100 FROM utms;";
+			}
+			else {
+				statement += "SELECT utm, maille20x20, maille50x50, maille100x100 FROM utms"
+						+ " WHERE utms.maille20x20 = ?"
+						+ " OR utms.maille50x50 = ?"
+						+ " OR utms.maille100x100 = ?;";
+			}
+			PreparedStatement listeUTM = connection.prepareStatement(statement);
+			listeUTM.setString(1,maille);
+			listeUTM.setString(2,maille);
+			listeUTM.setString(3,maille);
+
+			ResultSet rs = listeUTM.executeQuery();
+			
+			List<UTMS> utms = new ArrayList<UTMS>();
+			
+			while (rs.next()){
+				UTMS maillesUTM = new UTMS();
+				maillesUTM.utm = rs.getString("utm");
+				maillesUTM.maille20x20 = rs.getString("maille20x20");
+				maillesUTM.maille50x50 = rs.getString("maille50x50");
+				maillesUTM.maille100x100 = rs.getString("maille100x100");
+				utms.add(maillesUTM);
+			}
+			
+			listeUTM.close();
+			connection.close();
+			return(utms);
+			
+		} catch (SQLException e) {
+			return(null);
 		}
-		utms = find.where().eq("maille20x20", maille).findList();
-		if(!utms.isEmpty())
-			return utms;
-		utms = find.where().eq("maille50x50", maille).findList();
-		if(!utms.isEmpty())
-			return utms;
-		utms = find.where().eq("maille100x100", maille).findList();
-		if(!utms.isEmpty())
-			return utms;
-		else
-			return null;
 	}
 }

@@ -172,6 +172,8 @@ public class Calculs extends Controller {
 		setParams(listeDesTemoignages, listeParams);
 		ResultSet rs = listeDesTemoignages.executeQuery();
 		
+		connection.close();
+		
 		return rs;
 	}
 	
@@ -247,21 +249,20 @@ public class Calculs extends Controller {
 		
 		HashMap<UTMS,Integer> carteData = new HashMap<>();
 		while (rs.next()){
-			String maille = "";
 			UTMS mailleUTM = new UTMS();
 			switch (tailleUTM) {
 				case 20:
-					maille = rs.getString("utms.maille20x20");
-					mailleUTM.maille20x20 = maille;
+					mailleUTM.maille20x20 = rs.getString("utms.maille20x20");
 					break;
 				default:
-					maille = rs.getString("utms.utm");
-					mailleUTM.utm = maille;
+					mailleUTM.utm = rs.getString("utms.utm");
 					break;	
 			}
 			Integer nbTemoignages = rs.getInt("nbtem");
 			carteData.put(mailleUTM,nbTemoignages);
 		}
+		
+		connection.close();
 		return carteData;
 		
 	}
@@ -332,6 +333,8 @@ public class Calculs extends Controller {
 		sommeEspeces = connection.prepareStatement(statement); 
 		setParams(sommeEspeces, listeParams);
 		ResultSet rs = sommeEspeces.executeQuery();
+		
+		connection.close();
 		
 		return rs;
 	}
@@ -411,6 +414,9 @@ public class Calculs extends Controller {
 			Integer nbEspeces = rs.getInt("nbespeces");
 			carteData.put(mailleUTM,nbEspeces);
 		}
+		
+		connection.close();
+		
 		return carteData;
 	}
 
@@ -444,6 +450,8 @@ public class Calculs extends Controller {
 		setParams(listeDesTemoins, listeParams);
 		ResultSet rs = listeDesTemoins.executeQuery();
 
+		connection.close();
+		
 		return rs;
 	}
 	
@@ -470,6 +478,8 @@ public class Calculs extends Controller {
 		listeDesEspeces.setDate(2,new java.sql.Date(date2.getTimeInMillis()));	
 				
 		ResultSet rs = listeDesEspeces.executeQuery();
+		
+		connection.close();
 		
 		return rs;
 	}
@@ -505,6 +515,8 @@ private static ResultSet calculeEspecesParMaille(Map<String,String> info) throws
 		especesParMaille.setDate(2,new java.sql.Date(date2.getTimeInMillis()));	
 				
 		ResultSet rs = especesParMaille.executeQuery();
+		
+		connection.close();
 		
 		return rs;
 
@@ -547,6 +559,8 @@ private static ResultSet calculeListeDesObservations(Map<String,String> info) th
 	carteObs = connection.prepareStatement(statement); 
 	setParams(carteObs, listeParams);
 	ResultSet rs = carteObs.executeQuery();
+	
+	connection.close();
 	
 	return rs;
 }
@@ -596,6 +610,9 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 		Integer nbEspeces = rs.getInt("nbespeces");
 		carteData.put(mailleUTM,nbEspeces);
 	}
+	
+	connection.close();
+	
 	return carteData;
 		
 	}
@@ -639,6 +656,8 @@ private static ResultSet calculePhenologie(Map<String,String> info) throws Parse
 		setParams(phenologie, listeParams);		
 		ResultSet rs = phenologie.executeQuery();
 		
+		connection.close();
+		
 		return rs;
 
 }
@@ -667,6 +686,8 @@ public static ResultSet calculeEspecesParCommune(Map<String,String> info) throws
 			
 	ResultSet rs = especesParCommune.executeQuery();
 	
+	connection.close();
+	
 	return rs;
 
 	
@@ -692,11 +713,13 @@ public static ResultSet calculeEspecesParDepartement(Map<String,String> info) th
 			+ "INNER JOIN Departement d ON c.ville_departement_departement_code = d.departement_code "		
 			+ "WHERE obs.observation_validee = 1 and f.fiche_date BETWEEN ? AND ? "
 			+ "GROUP BY d.departement_nom, e.espece_nom ";
-	PreparedStatement EspecesParDepartement = connection.prepareStatement(statement); 
-	EspecesParDepartement.setDate(1,new java.sql.Date(date1.getTimeInMillis()));
-	EspecesParDepartement.setDate(2,new java.sql.Date(date2.getTimeInMillis()));	
+	PreparedStatement especesParDepartement = connection.prepareStatement(statement); 
+	especesParDepartement.setDate(1,new java.sql.Date(date1.getTimeInMillis()));
+	especesParDepartement.setDate(2,new java.sql.Date(date2.getTimeInMillis()));	
 			
-	ResultSet rs = EspecesParDepartement.executeQuery();
+	ResultSet rs = especesParDepartement.executeQuery();
+	
+	connection.close();
 	
 	return rs;
 
@@ -730,6 +753,8 @@ public static ResultSet calculeCarnetDeChasse(Map<String,String> info) throws SQ
 	carnetDeChasse.setString(1,session("username"));
 			
 	ResultSet rs = carnetDeChasse.executeQuery();
+	
+	connection.close();
 	
 	return rs;
 		
@@ -793,6 +818,8 @@ public static Map<String,Integer> calculeHistorique(Map<String,String> info) thr
 		histogramme.put(legende, histogrammeData[i]);
 	}
 	
+	connection.close();
+	
 	return histogramme;
 	}
 	
@@ -850,7 +877,7 @@ public static Map<String,Integer> calculeHistorique(Map<String,String> info) thr
 					ResultSet listeTemoignages = calculeListeDesTemoignages(info,0);
 					excelData = ListeExportExcel.listeDesTemoignages(info,listeTemoignages,0);
 					carteData = calculeCarteTemoignages(info,0);
-					carteImage = new Carte(carteData);
+					carteImage = new Carte(carteData,0);
 					carteImage.writeToDisk();
 					message = buildMessage("Carte par esp�ces", info);
 
@@ -862,13 +889,9 @@ public static Map<String,Integer> calculeHistorique(Map<String,String> info) thr
 					// carte du nombre de t�moignages par mailles
 					ResultSet listeTemoignagesUTM20 = calculeListeDesTemoignages(info,20);
 					excelData = ListeExportExcel.listeDesTemoignages(info,listeTemoignagesUTM20,20);
-					/*
-					NE FONCTIONNE PAS POUR L'INSTANT (pas de fichier carte.png repr�sentant les mailles 20x20)
-					message = buildMessage("Carte 20x20 par esp�ces", info);
 					carteData = calculeCarteTemoignages(info,20);
-					carteImage = new Carte(carteData);
+					carteImage = new Carte(carteData,20);
 					carteImage.writeToDisk();
-					*/
 					message = buildMessage("Carte 20x20 par esp�ces", info);
 
 				break;
@@ -879,7 +902,7 @@ public static Map<String,Integer> calculeHistorique(Map<String,String> info) thr
 					ResultSet sommeEspeces = calculeSommeEspeces(info,0);
 					excelData = ListeExportExcel.sommeEspeces(info,sommeEspeces,0);
 					carteData = calculeCarteSommeEspeces(info,0);
-					carteImage = new Carte(carteData);
+					carteImage = new Carte(carteData,0);
 					carteImage.writeToDisk();
 					message = buildMessage("Carte somme", info);
 					
@@ -891,12 +914,9 @@ public static Map<String,Integer> calculeHistorique(Map<String,String> info) thr
 					// UTM 20km X 20km
 					ResultSet sommeEspecesUTM20 = calculeSommeEspeces(info,20);
 					excelData = ListeExportExcel.sommeEspeces(info,sommeEspecesUTM20,20);
-					/*
-					NE FONCTIONNE PAS POUR L'INSTANT (pas de fichier carte.png repr�sentant les mailles 20x20)
 					carteData = calculeCarteSommeEspeces(info,20);
-					carteImage = new Carte(carteData);
+					carteImage = new Carte(carteData,20);
 					carteImage.writeToDisk();
-					*/
 					message = buildMessage("Carte somme 20x20", info);
 				break;
 
@@ -963,7 +983,7 @@ public static Map<String,Integer> calculeHistorique(Map<String,String> info) thr
 					ResultSet listeObservations = calculeListeDesObservations(info);
 					excelData = ListeExportExcel.listeDesObservations(info,listeObservations);
 					carteData = calculeCarteDesObservations(info);
-					carteImage = new Carte(carteData);
+					carteImage = new Carte(carteData,0);
 					carteImage.writeToDisk();
 					message = buildMessage("Carnet des observations de "+info.get("temoin"), info);
 					break;

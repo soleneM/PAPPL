@@ -152,7 +152,7 @@ public class MaillesParEspeceExcel extends Excel {
 			row = sheet.createRow(ligne-8);
 			row.createCell(8).setCellValue("Page "+(page+1));
 			//On ajoute l'image de la carte !
-			Carte carte = new Carte(observations);
+			Carte carte = new Carte(observations,0);
 			this.pasteMap(carte, page);
 			page++;
 		}

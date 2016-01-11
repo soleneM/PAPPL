@@ -22,9 +22,12 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -45,15 +48,41 @@ public class Carte {
 		SimpleDateFormat date_format = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss");
 		file_name=date_format.format(Calendar.getInstance().getTime())+".png";
 	}
-	public Carte(HashMap<UTMS,Integer> observations) throws IOException{
+	public Carte(HashMap<UTMS,Integer> observations, int tailleUTM) throws IOException{
 		this();
-		for(UTMS utm : observations.keySet()){
-			int nbr = observations.get(utm);
-			int[] xy = UTMtoXY.convert10x10(utm.utm);
-			if(nbr!=0){
-				allumeRouge(xy);
+		switch (tailleUTM) {
+		case 20:
+			for(UTMS utms : observations.keySet()){
+				int nbr = observations.get(utms);
+				List<UTMS> maille20toUTM = UTMS.parseMaille(utms.maille20x20);
+				if (maille20toUTM != null) {
+					int i = 1;
+					for(UTMS utmsBIS : maille20toUTM){
+						int[] xy = UTMtoXY.convert10x10(utmsBIS.utm);
+						if(nbr!=0){
+							allumeRouge(xy);
+						}
+						if (i==1) {
+							ecrit(xy,nbr,1);
+						}
+						else {
+							ecrit(xy,nbr,0);
+						}
+						i++;
+					}
+				}
 			}
-			ecrit(xy,nbr);
+			break;
+		default:
+			for(UTMS utms : observations.keySet()){
+				int nbr = observations.get(utms);
+				int[] xy = UTMtoXY.convert10x10(utms.utm);
+				if(nbr!=0){
+					allumeRouge(xy);
+				}
+				ecrit(xy,nbr,1);
+			}
+			break;	
 		}
 	}
 
@@ -69,12 +98,18 @@ public class Carte {
 			}
 		}
 	}
-	private void ecrit(int[] xy,int n){
-		ecrit(xy[0],xy[1],Integer.toString(n));
+	private void ecrit(int[] xy,int n, int couleur){
+		ecrit(xy[0],xy[1],Integer.toString(n), couleur);
 	}
-	public void ecrit(int x, int y, String texte){
+	
+	public void ecrit(int x, int y, String texte, int couleur){
 		Graphics g = carte.getGraphics();
-		g.setColor(Color.BLACK);
+		if (couleur==1) {
+			g.setColor(Color.WHITE);
+		}
+		else {
+			g.setColor(Color.BLACK);
+		}
 		switch (texte.length()) {
 		case 1:
 			g.setFont(g.getFont().deriveFont(1,16f));
