@@ -626,7 +626,7 @@ private static ResultSet calculePhenologie(Map<String,String> info) throws Parse
 			statement += " AND groupe.groupe_id = ?";
 			listeParams.add(info.get("sous_groupe"));
 		} else if ((info.get("groupe") != null) && (! info.get("groupe").equals(""))) {
-			statement += " AND groupe.groupe_id = ?";
+			statement += " AND groupe.groupe_pere_groupe_id = ?";
 			listeParams.add(info.get("groupe"));
 		}
 
