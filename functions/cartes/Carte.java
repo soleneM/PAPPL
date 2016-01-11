@@ -75,8 +75,25 @@ public class Carte {
 	public void ecrit(int x, int y, String texte){
 		Graphics g = carte.getGraphics();
 		g.setColor(Color.BLACK);
-		g.setFont(g.getFont().deriveFont(12f));
-		g.drawString(texte, X_AXIS[x-1]+4, Y_AXIS[y+1]+15);
+		switch (texte.length()) {
+		case 1:
+			g.setFont(g.getFont().deriveFont(1,16f));
+			g.drawString(texte, X_AXIS[x-1]+2, Y_AXIS[y+1]+17);
+			break;
+		case 2:
+			g.setFont(g.getFont().deriveFont(1,12f));
+			g.drawString(texte, X_AXIS[x-1]+2, Y_AXIS[y+1]+17);
+			break;
+		case 3:
+			g.setFont(g.getFont().deriveFont(1,8f));
+			g.drawString(texte, X_AXIS[x-1]+2, Y_AXIS[y+1]+17);
+			break;
+		default:
+			g.setFont(g.getFont().deriveFont(1,6f));
+			g.drawString(texte, X_AXIS[x-1]+2, Y_AXIS[y+1]+17);
+			break;
+		}
+		
 		g.dispose();
 	}
 
