@@ -625,70 +625,7 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 */
 	
 private static Map<String,Integer> calculePhenologie(Map<String,String> info) throws ParseException, SQLException {
-/*
- * public static Map<String,Integer> calculeHistorique(Map<String,String> info) throws SQLException, ParseException {
-	DataSource ds = DB.getDataSource();
-	Connection connection = ds.getConnection();
-	PreparedStatement historique;
-	ArrayList<Object> listeParams = new ArrayList<Object>();
 
-	String statement = "";
-	statement = "SELECT fiche.fiche_date, observation.observation_id"
-			+ " FROM observation"
-			+ " INNER JOIN fiche ON observation.observation_fiche_fiche_id = fiche.fiche_id"
-			+ " WHERE observation.observation_validee = 1"
-			+ " ORDER BY fiche.fiche_date";
-
-	historique = connection.prepareStatement(statement); 
-	ResultSet rs = historique.executeQuery();
-	
-	ArrayList<String> yearTemoignages = new ArrayList<>();
-	while(rs.next()) {
-		String date = rs.getString("fiche.fiche_date");
-		if (! date.equals(null)) {
-			char[] dateCharArray = date.toCharArray();
-			String yearString = "";
-			yearString += dateCharArray[0];
-			yearString += dateCharArray[1];
-			yearString += dateCharArray[2];
-			yearString += dateCharArray[3];
-			yearTemoignages.add(yearString);
-		}
-	}
-	
-	int nbTem = yearTemoignages.size();
-	int yearMin = Integer.parseInt(yearTemoignages.get(0));
-	int yearMax = Integer.parseInt(yearTemoignages.get(nbTem-1));
-	
-	int nbBarresHisto = 0;
-	if((yearMax-yearMin) % 20 == 0){
-		nbBarresHisto = (yearMax-yearMin)/20;
-	}else{
-		nbBarresHisto = ((yearMax-yearMin)/20 + 1);
-	}
-	
-	int[] histogrammeData = new int[nbBarresHisto];
-	int year;
-	for (String str : yearTemoignages) {
-		year = Integer.parseInt(str);
-		histogrammeData[(year-yearMin)/20]++;
-	}
-	
-	Map<String,Integer> histogramme = new HashMap<>();
-	int yearTempMin;
-	int yearTempMax;
-	for (int i=0; i<nbBarresHisto; i++) {
-		yearTempMin = yearMin+i*20;
-		yearTempMax = yearMin+i*20+19;
-		String legende = ""+yearTempMin+"-"+yearTempMax;
-		histogramme.put(legende, histogrammeData[i]);
-	}
-	
-	connection.close();
-	
-	return histogramme;
-	}
- */
 		DataSource ds = DB.getDataSource();
 		ArrayList<Object> listeParams = new ArrayList<Object>();
 		
@@ -700,7 +637,8 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 				+ " INNER JOIN espece_is_in_groupement_local ON (espece_is_in_groupement_local.espece_espece_id = espece.espece_id)"
 				+ " INNER JOIN groupe ON (groupe.groupe_id = espece_is_in_groupement_local.groupe_groupe_id)"
 				+ " WHERE fiche.fiche_date BETWEEN ? AND ?"
-				+ " GROUP BY espece.espece_nom ";
+				+ " GROUP BY espece.espece_nom, fiche.fiche_date"
+				+ " ORDER BY fiche.fiche_date";
 		
 		if ((info.get("sous_groupe") != null) && (! info.get("sous_groupe").equals(""))) {
 			statement += " AND groupe.groupe_id = ?";
@@ -719,8 +657,51 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 		setParams(phenologie, listeParams);		
 		ResultSet rs = phenologie.executeQuery();
 		
+		// début copié historique
+		/*ArrayList<String> dateTemoignage = new ArrayList<>();
+		while(rs.next()) {
+			String date = rs.getString("fiche.fiche_date");
+			if (! date.equals(null)) {
+				char[] dateCharArray = date.toCharArray();
+				String yearString = "";
+				yearString += dateCharArray[0];
+				yearString += dateCharArray[1];
+				yearString += dateCharArray[2];
+				yearString += dateCharArray[3];
+				dateTemoignage.add(yearString);
+			}
+		}
+		
+		int nbTem = yearTemoignages.size();
+		int yearMin = Integer.parseInt(dateTemoignage.get(0));
+		int yearMax = Integer.parseInt(dateTemoignage.get(nbTem-1));
+		
+		int nbBarresHisto = 0;
+		if((yearMax-yearMin) % 20 == 0){
+			nbBarresHisto = (yearMax-yearMin)/20;
+		}else{
+			nbBarresHisto = ((yearMax-yearMin)/20 + 1);
+		}
+		
+		int[] histogrammeData = new int[nbBarresHisto];
+		int year;
+		for (String str : dateTemoignage) {
+			year = Integer.parseInt(str);
+			histogrammeData[(year-yearMin)/20]++;
+		}
+		
 		Map<String,Integer> histogramme = new HashMap<>();
 		
+		int yearTempMin;
+		int yearTempMax;
+		for (int i=0; i<nbBarresHisto; i++) {
+			yearTempMin = yearMin+i*20;
+			yearTempMax = yearMin+i*20+19;
+			String legende = ""+yearTempMin+"-"+yearTempMax;
+			histogramme.put(legende, histogrammeData[i]);
+		}*/
+		// fin copié historique
+		Map<String,Integer> histogramme = new HashMap<>();
 		connection.close();
 		
 		return histogramme;
