@@ -55,9 +55,9 @@ public class ListeExportExcel extends Excel{
 	
 	public static ListeExportExcel listeDesTemoins(Map<String,String> info, ResultSet listeDesTemoins) throws IOException, SQLException{
 		ListeExportExcel theFile = new ListeExportExcel();
-		Sheet sheet = theFile.wb.createSheet("Témoins par période");
+		Sheet sheet = theFile.wb.createSheet("Temoins par periode");
 
-		String titre = "Liste des témoins ayant fait une observation"+crLf;
+		String titre = "Liste des temoins ayant fait une observation"+crLf;
 		if (! info.get("periode").equals("all")) {
 			String date1 = info.get("jour1")+"/"+info.get("mois1")+"/"+info.get("annee1");
 			String date2 = info.get("jour2")+"/"+info.get("mois2")+"/"+info.get("annee2");
@@ -68,8 +68,8 @@ public class ListeExportExcel extends Excel{
 		int ligne = 7;
 		theFile.collerLogoEtTitre(page,titre);
 		Row rowHead = sheet.createRow(ligne);
-		rowHead.createCell(0).setCellValue("Témoin");
-		rowHead.createCell(1).setCellValue("Nbre tém.");
+		rowHead.createCell(0).setCellValue("Temoin");
+		rowHead.createCell(1).setCellValue("Nbre tem.");
 		ligne++;
 		boolean ecritAGauche = true;
 		while (listeDesTemoins.next()){
@@ -91,20 +91,20 @@ public class ListeExportExcel extends Excel{
 					ecritAGauche=!ecritAGauche;
 					ligne-=(LIGNES-9);
 					Row row = sheet.getRow(ligne);
-					row.createCell(3).setCellValue("Témoin");
-					row.createCell(4).setCellValue("Nbre tém.");
+					row.createCell(3).setCellValue("Temoin");
+					row.createCell(4).setCellValue("Nbre tem.");
 					ligne++;
 				}else{
 					ecritAGauche=!ecritAGauche;
-					//On écrit le pied de page
+					//On ecrit le pied de page
 					theFile.piedDePage(page);
 					//On fait une nouvelle page
 					ligne+=9;
 					page++;
 					theFile.collerLogoEtTitre(page, titre);
 					Row row = sheet.createRow(ligne);
-					row.createCell(0).setCellValue("Témoin");
-					row.createCell(1).setCellValue("Nbre tém.");
+					row.createCell(0).setCellValue("Temoin");
+					row.createCell(1).setCellValue("Nbre tem.");
 					ligne++;
 				}
 			}
@@ -121,7 +121,7 @@ public class ListeExportExcel extends Excel{
 	
 	public static ListeExportExcel listeDesEspeces(Map<String,String> info, ResultSet listeDesEspeces) throws IOException, SQLException{
 		ListeExportExcel theFile = new ListeExportExcel();
-		Sheet sheet = theFile.wb.createSheet("Espèces par période");
+		Sheet sheet = theFile.wb.createSheet("Especes par periode");
 
 		String titre = "Liste des especes observees"+crLf;
 		if (! info.get("periode").equals("all")) {
@@ -157,19 +157,19 @@ public class ListeExportExcel extends Excel{
 					ecritAGauche=!ecritAGauche;
 					ligne-=(LIGNES-9);
 					Row row = sheet.getRow(ligne);
-					row.createCell(3).setCellValue("Espèce");
+					row.createCell(3).setCellValue("Espece");
 					row.createCell(4).setCellValue("Nbre mailles");
 					ligne++;
 				}else{
 					ecritAGauche=!ecritAGauche;
-					//On écrit le pied de page
+					//On ecrit le pied de page
 					theFile.piedDePage(page);
 					//On fait une nouvelle page
 					ligne+=9;
 					page++;
 					theFile.collerLogoEtTitre(page, titre);
 					Row row = sheet.createRow(ligne);
-					row.createCell(0).setCellValue("Espèce");
+					row.createCell(0).setCellValue("Espece");
 					row.createCell(1).setCellValue("Nbre mailles");
 					ligne++;
 				}
@@ -187,19 +187,19 @@ public class ListeExportExcel extends Excel{
 	
 	public static ListeExportExcel listeDesTemoignages(Map<String,String> info, ResultSet listeDesTemoignages, int tailleUTM) throws IOException, SQLException{
 		ListeExportExcel theFile = new ListeExportExcel();
-		Sheet sheet = theFile.wb.createSheet("Liste des témoignages");
+		Sheet sheet = theFile.wb.createSheet("Liste des temoignages");
 
 		int maxTemoignages = Integer.parseInt(info.get("maxtemoignages"));
 		SimpleDateFormat date_format = new SimpleDateFormat("dd/MM/yyyy");
 		
-		String titre = "Liste des témoignages"+crLf;
+		String titre = "Liste des temoignages"+crLf;
 		if (! info.get("periode").equals("all")) {
 			String date1 = info.get("jour1")+"/"+info.get("mois1")+"/"+info.get("annee1");
 			String date2 = info.get("jour2")+"/"+info.get("mois2")+"/"+info.get("annee2");
 			titre+=" du "+date1+" au "+date2;
 		}
 		if (! info.get("espece").equals("")) {
-			titre+=" pour l'espèce "+info.get("espece");
+			titre+=" pour l'espece "+info.get("espece");
 		} else if (! info.get("sous_groupe").equals("")) {
 			titre+=" pour le sous-groupe "+info.get("sous_groupe");
 		} else if (! info.get("groupe").equals("")) {
@@ -210,16 +210,16 @@ public class ListeExportExcel extends Excel{
 		int ligne = 7;
 		theFile.collerLogoEtTitre(page,titre);
 		Row rowHead = sheet.createRow(ligne);
-		rowHead.createCell(0).setCellValue("Espèce");
+		rowHead.createCell(0).setCellValue("Espece");
 		rowHead.createCell(1).setCellValue("Maille");
-		// décalage selon le nombre de colonnes pour les mailles
+		// decalage selon le nombre de colonnes pour les mailles
 		// il faut 4 colonnes si on affiche les mailles UTM, UTM 20x20, UTM 50x50 et UTM 100x100
 		// il faut une seule colonne si on affiche un seul type de maille
-		int nbColUTM = 4; // valeur par défaut
+		int nbColUTM = 4; // valeur par defaut
 		if (tailleUTM == 20) {
 			nbColUTM = 1;
 		}
-		rowHead.createCell(1+nbColUTM).setCellValue("Témoin");
+		rowHead.createCell(1+nbColUTM).setCellValue("Temoin");
 		rowHead.createCell(2+nbColUTM).setCellValue("Date");
 		ligne++;
 		String lastEspece = null;
@@ -269,7 +269,7 @@ public class ListeExportExcel extends Excel{
 				ligne++;
 			
 				if (ligne%LIGNES==(LIGNES-2)){
-					//On écrit le pied de page
+					//On ecrit le pied de page
 					theFile.piedDePage(page);
 				
 					//On fait une nouvelle page
@@ -277,9 +277,9 @@ public class ListeExportExcel extends Excel{
 					page++;
 					theFile.collerLogoEtTitre(page, titre);
 					row = sheet.createRow(ligne);
-					row.createCell(0).setCellValue("Espèce");
+					row.createCell(0).setCellValue("Espece");
 					rowHead.createCell(1).setCellValue("Maille");
-					row.createCell(1+nbColUTM).setCellValue("Témoin");
+					row.createCell(1+nbColUTM).setCellValue("Temoin");
 					rowHead.createCell(2+nbColUTM).setCellValue("Date");
 					ligne++;
 				
@@ -304,9 +304,9 @@ public class ListeExportExcel extends Excel{
 	
 	public static ListeExportExcel sommeEspeces(Map<String,String> info, ResultSet sommeEspeces, int tailleUTM) throws IOException, SQLException{
 		ListeExportExcel theFile = new ListeExportExcel();
-		Sheet sheet = theFile.wb.createSheet("Somme des espèces");
+		Sheet sheet = theFile.wb.createSheet("Somme des especes");
 
-		String titre = "Somme des espèces"+crLf;
+		String titre = "Somme des especes"+crLf;
 		if (! info.get("periode").equals("all")) {
 			String date1 = info.get("jour1")+"/"+info.get("mois1")+"/"+info.get("annee1");
 			String date2 = info.get("jour2")+"/"+info.get("mois2")+"/"+info.get("annee2");
@@ -324,7 +324,7 @@ public class ListeExportExcel extends Excel{
 		Row rowHead = sheet.createRow(ligne);
 		rowHead.createCell(0).setCellValue("Groupe");
 		rowHead.createCell(1).setCellValue("Maille");
-		rowHead.createCell(2).setCellValue("Nb d'espèces");
+		rowHead.createCell(2).setCellValue("Nb d'especes");
 		ligne++;
 		String lastGroupe = null;
 		String lastMaille = null;
@@ -354,7 +354,7 @@ public class ListeExportExcel extends Excel{
 				ligne++;
 			
 				if (ligne%LIGNES==(LIGNES-2)){
-					//On écrit le pied de page
+					//On ecrit le pied de page
 					theFile.piedDePage(page);
 				
 					//On fait une nouvelle page
@@ -364,7 +364,7 @@ public class ListeExportExcel extends Excel{
 					row = sheet.createRow(ligne);
 					row.createCell(0).setCellValue("Groupe");
 					rowHead.createCell(1).setCellValue("Maille");
-					row.createCell(2).setCellValue("Nb d'espèces");
+					row.createCell(2).setCellValue("Nb d'especes");
 					ligne++;
 				
 					lastGroupe = null;
@@ -386,7 +386,7 @@ public class ListeExportExcel extends Excel{
 		ListeExportExcel theFile = new ListeExportExcel();
 		Sheet sheet = theFile.wb.createSheet("Especes par commune");
 
-		String titre = "Espèces trouvées par commune ";
+		String titre = "Especes trouvees par commune ";
 		
 		sheet.createRow(0).createCell(0).setCellValue(titre);
 		sheet.addMergedRegion(new CellRangeAddress(
@@ -397,7 +397,7 @@ public class ListeExportExcel extends Excel{
 				));
 		Row rowHead = sheet.createRow(1);
 		rowHead.createCell(0).setCellValue("Commune");
-		rowHead.createCell(1).setCellValue("Espèces observées");
+		rowHead.createCell(1).setCellValue("Especes observees");
 
 		CellStyle cellStyleDate = theFile.wb.createCellStyle();
 		CreationHelper creationHelper = theFile.wb.getCreationHelper();
@@ -442,7 +442,7 @@ public class ListeExportExcel extends Excel{
 		ListeExportExcel theFile = new ListeExportExcel();
 		Sheet sheet = theFile.wb.createSheet("Especes par departement");
 
-		String titre = "Espèces trouvées par département ";
+		String titre = "Especes trouvees par departement ";
 		
 		sheet.createRow(0).createCell(0).setCellValue(titre);
 		sheet.addMergedRegion(new CellRangeAddress(
@@ -452,8 +452,8 @@ public class ListeExportExcel extends Excel{
 				330  //last column  (0-based)
 				));
 		Row rowHead = sheet.createRow(1);
-		rowHead.createCell(0).setCellValue("Département");
-		rowHead.createCell(1).setCellValue("Espèces observées");
+		rowHead.createCell(0).setCellValue("Departement");
+		rowHead.createCell(1).setCellValue("Especes observees");
 
 		CellStyle cellStyleDate = theFile.wb.createCellStyle();
 		CreationHelper creationHelper = theFile.wb.getCreationHelper();
@@ -495,9 +495,9 @@ public class ListeExportExcel extends Excel{
 	
 	public static ListeExportExcel carnetDeChasse(Map<String,String> info, ResultSet carnetDeChasse) throws IOException, SQLException{
 		ListeExportExcel theFile = new ListeExportExcel();
-		Sheet sheet = theFile.wb.createSheet("Chronologie d'un témoin");
+		Sheet sheet = theFile.wb.createSheet("Chronologie d'un temoin");
 
-		String titre = "Chronologie de mes témoignages ";
+		String titre = "Chronologie de mes temoignages ";
 		
 		sheet.createRow(0).createCell(0).setCellValue(titre);
 		sheet.addMergedRegion(new CellRangeAddress(
@@ -508,7 +508,7 @@ public class ListeExportExcel extends Excel{
 				));
 		Row rowHead = sheet.createRow(1);
 		rowHead.createCell(0).setCellValue("Maille");
-		rowHead.createCell(1).setCellValue("Espèces observées");
+		rowHead.createCell(1).setCellValue("Especes observees");
 
 		CellStyle cellStyleDate = theFile.wb.createCellStyle();
 		CreationHelper creationHelper = theFile.wb.getCreationHelper();
@@ -566,7 +566,7 @@ public class ListeExportExcel extends Excel{
 		ListeExportExcel theFile = new ListeExportExcel();
 		Sheet sheet = theFile.wb.createSheet("Liste des observations");
 
-		String titre = "Espèces trouvées par maille";
+		String titre = "Especes trouvees par maille";
 		
 		sheet.createRow(0).createCell(0).setCellValue(titre);
 		sheet.addMergedRegion(new CellRangeAddress(
@@ -577,7 +577,7 @@ public class ListeExportExcel extends Excel{
 				));
 		Row rowHead = sheet.createRow(1);
 		rowHead.createCell(0).setCellValue("Maille");
-		rowHead.createCell(1).setCellValue("Espèces observées");
+		rowHead.createCell(1).setCellValue("Especes observees");
 
 		CellStyle cellStyleDate = theFile.wb.createCellStyle();
 		CreationHelper creationHelper = theFile.wb.getCreationHelper();
@@ -619,7 +619,7 @@ public class ListeExportExcel extends Excel{
 		ListeExportExcel theFile = new ListeExportExcel();
 		Sheet sheet = theFile.wb.createSheet("Especes par maille");
 
-		String titre = "Espèces trouvées par maille ";
+		String titre = "Especes trouvees par maille ";
 		
 		sheet.createRow(0).createCell(0).setCellValue(titre);
 		sheet.addMergedRegion(new CellRangeAddress(
@@ -630,7 +630,7 @@ public class ListeExportExcel extends Excel{
 				));
 		Row rowHead = sheet.createRow(1);
 		rowHead.createCell(0).setCellValue("Maille");
-		rowHead.createCell(1).setCellValue("Espèces observées");
+		rowHead.createCell(1).setCellValue("Especes observees");
 
 		CellStyle cellStyleDate = theFile.wb.createCellStyle();
 		CreationHelper creationHelper = theFile.wb.getCreationHelper();
@@ -723,7 +723,7 @@ public class ListeExportExcel extends Excel{
 				statement += " AND espece.espece_id="+espece_id;
 
 				Espece espece = Espece.find.byId(espece_id);
-				titre+=" concernant l'espèce "+espece.espece_nom;
+				titre+=" concernant l'espece "+espece.espece_nom;
 			}
 			
 			if (groupe_id > 0) {
@@ -762,9 +762,9 @@ public class ListeExportExcel extends Excel{
 			sheet.createRow(0).createCell(0).setCellValue(titre);
 			Row rowtitre = sheet.createRow(1);
 			rowtitre.createCell(0).setCellValue("id");
-			rowtitre.createCell(1).setCellValue("nom du(des) témoins");
-			rowtitre.createCell(2).setCellValue("espèce");
-			rowtitre.createCell(3).setCellValue("déterminateur");
+			rowtitre.createCell(1).setCellValue("nom du(des) temoins");
+			rowtitre.createCell(2).setCellValue("espece");
+			rowtitre.createCell(3).setCellValue("determinateur");
 			rowtitre.createCell(4).setCellValue("commentaires");
 			rowtitre.createCell(5).setCellValue("Date d'observation");
 			rowtitre.createCell(6).setCellValue("Lieu-dit");
@@ -772,7 +772,7 @@ public class ListeExportExcel extends Excel{
 			rowtitre.createCell(8).setCellValue("UTM");
 			rowtitre.createCell(9).setCellValue("Memo");
 			rowtitre.createCell(10).setCellValue("Date de soumission");
-			rowtitre.createCell(11).setCellValue("Informations supplémentaires");
+			rowtitre.createCell(11).setCellValue("Informations supplementaires");
 			rowtitre.createCell(12).setCellValue("Date de validation");
 			CellStyle cellStyleDate = theFile.wb.createCellStyle();
 			CreationHelper creationHelper = theFile.wb.getCreationHelper();
