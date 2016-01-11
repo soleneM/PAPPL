@@ -140,7 +140,7 @@ public class Calculs extends Controller {
 				+ " INNER JOIN groupe ON espece_is_in_groupement_local.groupe_groupe_id = groupe.groupe_id"
 				+ " INNER JOIN utms ON utms.utm = f.fiche_utm_utm"
 				+ " WHERE obs.observation_validee = 1"
-				+ " AND groupe.groupe_id=?";
+				+ " AND groupe.groupe_pere_groupe_id=?";
 			listeParams.add(info.get("groupe"));
 		} else {
 			statement += " INNER JOIN utms ON utms.utm = f.fiche_utm_utm"
@@ -214,7 +214,7 @@ public class Calculs extends Controller {
 				+ " INNER JOIN groupe ON espece_is_in_groupement_local.groupe_groupe_id = groupe.groupe_id"
 				+ " INNER JOIN utms ON utms.utm = f.fiche_utm_utm"
 				+ " WHERE obs.observation_validee = 1"
-				+ " AND groupe.groupe_id=?";
+				+ " AND groupe.groupe_pere_groupe_id=?";
 			listeParams.add(info.get("groupe"));
 		} else {
 			statement += " INNER JOIN utms ON utms.utm = f.fiche_utm_utm"
@@ -304,7 +304,7 @@ public class Calculs extends Controller {
 			statement += " AND groupe.groupe_id = ?";
 			listeParams.add(info.get("sous_groupe"));
 		} else if ((info.get("groupe") != null) && (! info.get("groupe").equals(""))) {
-			statement += " AND groupe.groupe_id = ?";
+			statement += " AND groupe.groupe.pere_groupe_id = ?";
 			listeParams.add(info.get("groupe"));
 		}
 		
@@ -365,7 +365,7 @@ public class Calculs extends Controller {
 			statement += " AND groupe.groupe_id = ?";
 			listeParams.add(info.get("sous_groupe"));
 		} else if ((info.get("groupe") != null) && (! info.get("groupe").equals(""))) {
-			statement += " AND groupe.groupe_id = ?";
+			statement += " AND groupe.groupe_pere_groupe_id = ?";
 			listeParams.add(info.get("groupe"));
 		}
 		
