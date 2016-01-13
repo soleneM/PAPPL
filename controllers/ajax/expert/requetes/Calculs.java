@@ -653,6 +653,39 @@ public static int periodeDeuxJours(int date1,int date2){
 	return nbrePeriodes;
 }
 
+//donne le nombre de périodes entre le début de l'année et le mois
+public static int periodeJanvierDebutMois(int month){
+	int nbrePeriodes=0;
+    nbrePeriodes=3*(month-1);
+	return nbrePeriodes;
+}
+
+//donne le nombre de périodes entre le mois et la fin de l'année
+public static int periodeFinMoisDecembre(int month){
+	int nbrePeriodes=0;
+    nbrePeriodes=3*(12-month);
+	return nbrePeriodes;
+}
+
+// calcul du nombre de périodes entre deux dates
+public static int nbrePeriodes(int yearBegin,int monthBegin, int dayBegin, int yearEnd, int monthEnd, int dayEnd){
+	int nbPeriodes = 0;
+	
+	// disjonction de cas suivant le jour, le mois et l'année				
+	if (yearEnd-yearBegin==0 && monthEnd==monthBegin){
+		nbPeriodes = periodeDeuxJours(dayBegin,dayEnd);
+	} else if (yearEnd-yearBegin==0 && !(monthEnd==monthBegin)){
+		nbPeriodes= periode(dayEnd)+(4-periode(dayBegin))+3*(monthEnd-monthBegin-1);
+	}
+
+    if (!(yearEnd-yearBegin==0)){
+    	nbPeriodes = (yearEnd-yearBegin-1)*36; // nbre périodes pour les années intermédiaires
+    	nbPeriodes += periodeJanvierDebutMois(monthEnd)+periodeFinMoisDecembre(monthBegin); 
+    	nbPeriodes += periode(dayEnd)+(4-periode(dayBegin));
+    }
+    return nbPeriodes;
+}
+
 private static Map<String,Integer> calculePhenologie(Map<String,String> info) throws ParseException, SQLException {
 
 		DataSource ds = DB.getDataSource();
@@ -685,14 +718,7 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 		setParams(phenologie, listeParams);		
 		ResultSet rs = phenologie.executeQuery();
 		
-		// début copié historique
-		// pour faciliter le traitement des dates on créé trois ArrayList. 
-		// format d'une date de sortie de my sql yyyy-mm-dd
-		// Dans chacune on va faire figurer une année, un jour ou un mois.
-		// Une date complète correspond à yearTemoignage.get(i) + monthTemoignage.get(i)+ dayTemoignage.get(i);
-		ArrayList<String> yearTemoignage = new ArrayList<>();
-		ArrayList<String> monthTemoignage = new ArrayList<>();
-		ArrayList<String> dayTemoignage = new ArrayList<>();
+		ArrayList<String[]> dateTemoignage = new ArrayList<>();
 		while(rs.next()) {
 			String date = rs.getString("fiche.fiche_date");
 			if (! date.equals(null)) {
@@ -700,6 +726,7 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 				String yearString = "";
 				String monthString ="";
 				String dayString = "";
+				String[] monTableauDate=new String[3];
 				yearString += dateCharArray[0];
 				yearString += dateCharArray[1];
 				yearString += dateCharArray[2];
@@ -708,52 +735,53 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 				monthString += dateCharArray[6];
 				dayString += dateCharArray[8];
 				dayString += dateCharArray[9];
-				yearTemoignage.add(yearString);
-				monthTemoignage.add(monthString);
-				dayTemoignage.add(dayString);
+				monTableauDate[0]=yearString;
+				monTableauDate[1]=monthString;
+				monTableauDate[2]=dayString;
+				dateTemoignage.add(monTableauDate);
 			}
 		}
 		
 		// on stocke les valeurs des jours et mois de début et de fin.
-		int nbTem = yearTemoignage.size();
-		int yearBegin = Integer.parseInt(yearTemoignage.get(0));
-		int yearEnd = Integer.parseInt(yearTemoignage.get(nbTem-1));
-		int monthBegin = Integer.parseInt(monthTemoignage.get(0));
-		int monthEnd = Integer.parseInt(monthTemoignage.get(nbTem-1));
-		int dayBegin = Integer.parseInt(dayTemoignage.get(0));
-		int dayEnd = Integer.parseInt(dayTemoignage.get(nbTem-1));
-		int periode1=10;
-	    int periode2=21;
+		int nbTem = dateTemoignage.size();
+		int yearBegin = Integer.parseInt(dateTemoignage.get(0)[0]);
+		int yearEnd = Integer.parseInt(dateTemoignage.get(nbTem-1)[0]);
+		int monthBegin = Integer.parseInt(dateTemoignage.get(0)[1]);
+		int monthEnd = Integer.parseInt(dateTemoignage.get(nbTem-1)[1]);
+		int dayBegin = Integer.parseInt(dateTemoignage.get(0)[2]);
+		int dayEnd = Integer.parseInt(dateTemoignage.get(nbTem-1)[2]);
 		
 		int nbBarresHisto = 0;
-		
-		// calcul du nombre de périodes
-		
-				
-		if ((yearEnd-yearBegin) % 20 == 0){
-			nbBarresHisto = (yearEnd-yearBegin)/20;
-		}else{
-			nbBarresHisto = ((yearEnd-yearBegin)/20 + 1);
-		}
+		nbBarresHisto=nbrePeriodes(yearBegin,monthBegin,dayBegin,yearEnd,monthEnd,dayEnd);
 		
 		int[] histogrammeData = new int[nbBarresHisto];
 		int year;
-		for (String str : yearTemoignage) {
-			year = Integer.parseInt(str);
-			histogrammeData[(year-yearBegin)/20]++;
+		int month;
+		int day;
+		int numPeriode;
+		for (String[] str : dateTemoignage) {
+			year = Integer.parseInt(str[0]);
+			month = Integer.parseInt(str[1]);
+			day = Integer.parseInt(str[2]);
+			numPeriode=nbrePeriodes(yearBegin,monthBegin,dayBegin,year,month,day);
+			histogrammeData[numPeriode-1]++;
 		}
 		
 		Map<String,Integer> histogramme = new HashMap<>();
 		
 		int yearTempMin;
-		int yearTempMax;
+		int monthTempMin;
 		for (int i=0; i<nbBarresHisto; i++) {
-			yearTempMin = yearBegin+i*20;
-			yearTempMax = yearBegin+i*20+19;
-			String legende = ""+yearTempMin+"-"+yearTempMax;
+			yearTempMin = yearBegin+i;
+			if ((monthBegin+i)%12==0){
+			monthTempMin = 1;
+			} else {
+				monthTempMin=monthBegin+i;
+			}
+			String legende = ""+yearTempMin+"-"+monthTempMin+" periode "+i;
 			histogramme.put(legende, histogrammeData[i]);
 		}
-		// fin copié historique
+		
 		
 		connection.close();
 		
