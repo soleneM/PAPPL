@@ -686,6 +686,67 @@ public static int nbrePeriodes(int yearBegin,int monthBegin, int dayBegin, int y
     return nbPeriodes;
 }
 
+public static int[][] moisAnnee(int nbBarresHisto, int yearBegin,int monthBegin, int dayBegin){
+	int[][] datePeriode=new int[2][nbBarresHisto];
+	datePeriode[0][0]=yearBegin;
+	datePeriode[1][0]=monthBegin;
+	// si la premiere periode correspond a un premier tiers de mois
+	if (1<nbBarresHisto){
+		// si la premiere periode correspond a un premier tiers de mois
+		if (periode(dayBegin)%3==1){
+			for (int i=1; i<nbBarresHisto; i++){
+				if ((i%3==0 && (datePeriode[1][i-1]+1)%12==0)){
+					datePeriode[0][i]=datePeriode[0][i-1]+1;
+					datePeriode[1][i]=1;
+					} else if ((i%3==0 && !((datePeriode[1][i-1]+1)%12==0))){
+				    datePeriode[1][i]=datePeriode[1][i-1]+1;
+				    datePeriode[0][i]=datePeriode[0][i-1];
+					}
+				if (!(i%3==0)){
+					datePeriode[1][i]=datePeriode[1][i-1];
+				    datePeriode[0][i]=datePeriode[0][i-1];
+				}
+			}
+			
+		}
+		// si la premiere periode correspond a un deuxieme tiers de mois
+		if (periode(dayBegin)%3==2){
+			for (int i=1; i<nbBarresHisto; i++){
+				if ((i%3==1 && (datePeriode[1][i-1]+1)%12==0)){
+					datePeriode[0][i]=datePeriode[0][i-1]+1;
+					datePeriode[1][i]=1;
+					} else if ((i%3==0 && !((datePeriode[1][i-1]+1)%12==0))){
+				    datePeriode[1][i]=datePeriode[1][i-1]+1;
+				    datePeriode[0][i]=datePeriode[0][i-1];
+					}
+				if (!(i%3==1)){
+					datePeriode[1][i]=datePeriode[1][i-1];
+				    datePeriode[0][i]=datePeriode[0][i-1];
+				}
+			}
+			
+		}
+		// si la premiere periode correspond a un dernier tiers de mois
+		if (periode(dayBegin)%3==0){
+			for (int i=1; i<nbBarresHisto; i++){
+				if ((i%3==2 && (datePeriode[1][i-1]+1)%12==0)){
+					datePeriode[0][i]=datePeriode[0][i-1]+1;
+					datePeriode[1][i]=1;
+					} else if ((i%3==0 && !((datePeriode[1][i-1]+1)%12==0))){
+				    datePeriode[1][i]=datePeriode[1][i-1]+1;
+				    datePeriode[0][i]=datePeriode[0][i-1];
+					}
+				if (!(i%3==2)){
+					datePeriode[1][i]=datePeriode[1][i-1];
+				    datePeriode[0][i]=datePeriode[0][i-1];
+				}
+			}
+			
+		}
+	}
+	return datePeriode;
+}
+
 private static Map<String,Integer> calculePhenologie(Map<String,String> info) throws ParseException, SQLException {
 
 		DataSource ds = DB.getDataSource();
@@ -759,6 +820,7 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 		int month;
 		int day;
 		int numPeriode;
+		// on entre les donnees dans l'histogramme
 		for (String[] str : dateTemoignage) {
 			year = Integer.parseInt(str[0]);
 			month = Integer.parseInt(str[1]);
@@ -768,18 +830,13 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 		}
 		
 		Map<String,Integer> histogramme = new HashMap<>();
-		
-		int yearTempMin;
-		int monthTempMin;
-		for (int i=0; i<nbBarresHisto; i++) {
-			yearTempMin = yearBegin+i;
-			if ((monthBegin+i)%12==0){
-			monthTempMin = 1;
-			} else {
-				monthTempMin=monthBegin+i;
-			}
-			String legende = ""+yearTempMin+"-"+monthTempMin+" periode "+i;
-			histogramme.put(legende, histogrammeData[i]);
+		// creation de la legende de l'histogramme
+		String[] legende=new String[nbBarresHisto];
+		int[][] intermediaireLegende=new int[2][nbBarresHisto];
+		intermediaireLegende=moisAnnee(nbBarresHisto,yearBegin,monthBegin,dayBegin);
+		for (int i=0; i<nbBarresHisto; i++){
+			legende[i] = ""+intermediaireLegende[0][i]+"-"+intermediaireLegende[1][i]+"-"+i;
+			histogramme.put(legende[i], histogrammeData[i]);
 		}
 		
 		
