@@ -624,130 +624,6 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 * @return
 */
 
-// methode de calcul de periode pour une date. Methode utilisee dans phenologie.
-public static int periode(int date){
-	int periode=0;
-	if (date<=10){
-		periode=1;
-	}
-	if ((10<date) && (date<=21)){
-		periode=2;
-	}
-	if (21<date){
-		periode=3;
-	}
-	return periode;
-}
-
-// donne le nombre de periodes entre deux jours du meme mois
-public static int periodeDeuxJours(int date1,int date2){
-	int nbrePeriodes=0;
-	if (periode(date1)==periode(date2)){
-		nbrePeriodes=1;
-	}
-	if (periode(date2)-periode(date1)==1){
-		nbrePeriodes=2;
-	}
-	if (periode(date2)-periode(date1)==2){
-		nbrePeriodes=3;
-	}
-	return nbrePeriodes;
-}
-
-//donne le nombre de periodes entre le debut de l'annee et le mois
-public static int periodeJanvierDebutMois(int month){
-	int nbrePeriodes=0;
-    nbrePeriodes=3*(month-1);
-	return nbrePeriodes;
-}
-
-//donne le nombre de periodes entre le mois et la fin de l'annee
-public static int periodeFinMoisDecembre(int month){
-	int nbrePeriodes=0;
-    nbrePeriodes=3*(12-month);
-	return nbrePeriodes;
-}
-
-// calcul du nombre de periodes entre deux dates
-public static int nbrePeriodes(int yearBegin,int monthBegin, int dayBegin, int yearEnd, int monthEnd, int dayEnd){
-	int nbPeriodes = 0;
-	
-	// disjonction de cas suivant le jour, le mois et l'annee				
-	if (yearEnd-yearBegin==0 && monthEnd==monthBegin){
-		nbPeriodes = periodeDeuxJours(dayBegin,dayEnd);
-	} else if (yearEnd-yearBegin==0 && !(monthEnd==monthBegin)){
-		nbPeriodes= periode(dayEnd)+(4-periode(dayBegin))+3*(monthEnd-monthBegin-1);
-	}
-
-    if (!(yearEnd-yearBegin==0)){
-    	nbPeriodes = (yearEnd-yearBegin-1)*36; // nbre periodes pour les annees intermediaires
-    	nbPeriodes += periodeJanvierDebutMois(monthEnd)+periodeFinMoisDecembre(monthBegin); 
-    	nbPeriodes += periode(dayEnd)+(4-periode(dayBegin));
-    }
-    return nbPeriodes;
-}
-
-public static int[][] moisAnnee(int nbBarresHisto, int yearBegin,int monthBegin, int dayBegin){
-	int[][] datePeriode=new int[2][nbBarresHisto];
-	datePeriode[0][0]=yearBegin;
-	datePeriode[1][0]=monthBegin;
-	// si la premiere periode correspond a un premier tiers de mois
-	if (1<nbBarresHisto){
-		// si la premiere periode correspond a un premier tiers de mois
-		if (periode(dayBegin)%3==1){
-			for (int i=1; i<nbBarresHisto; i++){
-				if ((i%3==0 && (datePeriode[1][i-1]+1)%12==0)){
-					datePeriode[0][i]=datePeriode[0][i-1]+1;
-					datePeriode[1][i]=1;
-					} else if ((i%3==0 && !((datePeriode[1][i-1]+1)%12==0))){
-				    datePeriode[1][i]=datePeriode[1][i-1]+1;
-				    datePeriode[0][i]=datePeriode[0][i-1];
-					}
-				if (!(i%3==0)){
-					datePeriode[1][i]=datePeriode[1][i-1];
-				    datePeriode[0][i]=datePeriode[0][i-1];
-				}
-			}
-			
-		}
-		// si la premiere periode correspond a un deuxieme tiers de mois
-		if (periode(dayBegin)%3==2){
-			for (int i=1; i<nbBarresHisto; i++){
-				if ((i%3==1 && (datePeriode[1][i-1]+1)%12==0)){
-					datePeriode[0][i]=datePeriode[0][i-1]+1;
-					datePeriode[1][i]=1;
-					} else if ((i%3==0 && !((datePeriode[1][i-1]+1)%12==0))){
-				    datePeriode[1][i]=datePeriode[1][i-1]+1;
-				    datePeriode[0][i]=datePeriode[0][i-1];
-					}
-				if (!(i%3==1)){
-					datePeriode[1][i]=datePeriode[1][i-1];
-				    datePeriode[0][i]=datePeriode[0][i-1];
-				}
-			}
-			
-		}
-		// si la premiere periode correspond a un dernier tiers de mois
-		if (periode(dayBegin)%3==0){
-			for (int i=1; i<nbBarresHisto; i++){
-				if ((i%3==2 && (datePeriode[1][i-1]+1)%12==0)){
-					datePeriode[0][i]=datePeriode[0][i-1]+1;
-					datePeriode[1][i]=1;
-					} else if ((i%3==0 && !((datePeriode[1][i-1]+1)%12==0))){
-				    datePeriode[1][i]=datePeriode[1][i-1]+1;
-				    datePeriode[0][i]=datePeriode[0][i-1];
-					}
-				if (!(i%3==2)){
-					datePeriode[1][i]=datePeriode[1][i-1];
-				    datePeriode[0][i]=datePeriode[0][i-1];
-				}
-			}
-			
-		}
-	}
-	return datePeriode;
-}
-
 private static Map<String,Integer> calculePhenologie(Map<String,String> info) throws ParseException, SQLException {
 
 		DataSource ds = DB.getDataSource();
@@ -788,11 +664,11 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 		Map<String,Integer> histogramme = new HashMap<>();
 		
 		SimpleDateFormat date_format = new SimpleDateFormat("yyyy-MM-dd");
-		// on initialise deux objets à la date actuelle (modification plus tard)
+		// on initialise deux objets a la date actuelle (modification plus tard)
         Calendar dateDebutPeriode = Calendar.getInstance();
         Calendar dateFinPeriode = Calendar.getInstance();
 		
-        boolean periode1 = true; // permet de savoir si on est dans la première itération du while suivant
+        boolean periode1 = true; // permet de savoir si on est dans la premiere iteration du while suivant
         int nbTem = 0;
         String legende = "";
 		while(rs.next()) {
@@ -800,13 +676,13 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 			if (periode1) {
 				// on modifie dateDebutPeriode et dateFinPeriode
 				if (!info.get("periode").equals("all")) {
-					// si une période est renseignée par l'utilisateur, dateDebutPeriode correspond à la date de début demandée par l'utilisateur
+					// si une periode est renseignee par l'utilisateur, dateDebutPeriode correspond a la date de debut demandee par l'utilisateur
 					dateDebutPeriode.setTime(getDataDate1(info).getTime());
 					dateFinPeriode.setTime(getDataDate1(info).getTime());
 					dateFinPeriode.add(Calendar.DATE, 10);
 				}
 				else {
-					// si aucune période n'est renseignée par l'utilisateur, il faut prendre la date du 1er témoignage
+					// si aucune periode n'est renseignee par l'utilisateur, il faut prendre la date du 1er temoignage
 					dateDebutPeriode.setTime(date);
 			        dateFinPeriode.setTime(date);
 			        dateFinPeriode.add(Calendar.DATE, 10);
@@ -816,87 +692,24 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 		        histogramme.put(legende, nbTem);
 		        periode1 = false;
 			}
-			// disjonction de cas selon que la date du témoignage est après ou avant dateFinPeriode
+			// disjonction de cas selon que la date du temoignage est apres ou avant dateFinPeriode
 			if (!date.after(dateFinPeriode.getTime())) {
 				nbTem++;
 			}
 			else {
-				// on met à jour dateDebutPeriode et dateFinPeriode
+				// on met a jour dateDebutPeriode et dateFinPeriode
 				dateFinPeriode.add(Calendar.DATE, 1);
 				dateDebutPeriode.setTime(dateFinPeriode.getTime());
 				dateFinPeriode.setTime(dateDebutPeriode.getTime());
 				dateFinPeriode.add(Calendar.DATE, 10);
-				// on met à jour la légende
+				// on met a� jour la legende
 		        legende = date_format.format(dateDebutPeriode.getTime())+" - "+date_format.format(dateFinPeriode.getTime());
-		        // on ré-initialise le nombre de témoignages
+		        // on reinitialise le nombre de temoignages
 		        nbTem = 0;
 			}
 			histogramme.put(legende, nbTem);
 		}
-		
-		/*
-		ArrayList<String[]> dateTemoignage = new ArrayList<>();
-		
-		while(rs.next()) {
-			String date = rs.getString("fiche.fiche_date");
-			if (! date.equals(null)) {
-				char[] dateCharArray = date.toCharArray();
-				String yearString = "";
-				String monthString ="";
-				String dayString = "";
-				String[] monTableauDate=new String[3];
-				yearString += dateCharArray[0];
-				yearString += dateCharArray[1];
-				yearString += dateCharArray[2];
-				yearString += dateCharArray[3];
-				monthString += dateCharArray[5];
-				monthString += dateCharArray[6];
-				dayString += dateCharArray[8];
-				dayString += dateCharArray[9];
-				monTableauDate[0]=yearString;
-				monTableauDate[1]=monthString;
-				monTableauDate[2]=dayString;
-				dateTemoignage.add(monTableauDate);
-			}
-		}
-		
-		// on stocke les valeurs des jours et mois de debut et de fin.
-		int nbTem = dateTemoignage.size();
-		int yearBegin = Integer.parseInt(dateTemoignage.get(0)[0]);
-		int yearEnd = Integer.parseInt(dateTemoignage.get(nbTem-1)[0]);
-		int monthBegin = Integer.parseInt(dateTemoignage.get(0)[1]);
-		int monthEnd = Integer.parseInt(dateTemoignage.get(nbTem-1)[1]);
-		int dayBegin = Integer.parseInt(dateTemoignage.get(0)[2]);
-		int dayEnd = Integer.parseInt(dateTemoignage.get(nbTem-1)[2]);
-		
-		int nbBarresHisto = 0;
-		nbBarresHisto=nbrePeriodes(yearBegin,monthBegin,dayBegin,yearEnd,monthEnd,dayEnd);
-		
-		int[] histogrammeData = new int[nbBarresHisto];
-		int year;
-		int month;
-		int day;
-		int numPeriode;
-		// on entre les donnees dans l'histogramme
-		for (String[] str : dateTemoignage) {
-			year = Integer.parseInt(str[0]);
-			month = Integer.parseInt(str[1]);
-			day = Integer.parseInt(str[2]);
-			numPeriode=nbrePeriodes(yearBegin,monthBegin,dayBegin,year,month,day);
-			histogrammeData[numPeriode-1]++;
-		}
-		
-		Map<String,Integer> histogramme = new HashMap<>();
-		// creation de la legende de l'histogramme
-		String[] legende=new String[nbBarresHisto];
-		int[][] intermediaireLegende=new int[2][nbBarresHisto];
-		intermediaireLegende=moisAnnee(nbBarresHisto,yearBegin,monthBegin,dayBegin);
-		for (int i=0; i<nbBarresHisto; i++){
-			legende[i] = ""+intermediaireLegende[0][i]+"-"+intermediaireLegende[1][i]+"-"+i;
-			histogramme.put(legende[i], histogrammeData[i]);
-		}
-		*/
-		
+	
 		connection.close();
 		
 		return histogramme;
