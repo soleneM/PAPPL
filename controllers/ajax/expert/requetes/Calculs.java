@@ -95,7 +95,6 @@ import models.UTMS;
 
 public class Calculs extends Controller {
 	
-	
 	/**
 	 * Calcule la liste des temoignages par especes sur une periode
 	 * @return
@@ -623,7 +622,131 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 * du nombre de temoignages
 * @return
 */
+
+// methode de calcul de periode pour une date. Methode utilis\E9e dans ph\E9nologie.
+public static int periode(int date){
+	int periode=0;
+	if (date<=10){
+		periode=1;
+	}
+	if ((10<date) && (date<=21)){
+		periode=2;
+	}
+	if (21<date){
+		periode=3;
+	}
+	return periode;
+}
+
+// donne le nombre de p\E9riodes entre deux jours du m\EAme mois
+public static int periodeDeuxJours(int date1,int date2){
+	int nbrePeriodes=0;
+	if (periode(date1)==periode(date2)){
+		nbrePeriodes=1;
+	}
+	if (periode(date2)-periode(date1)==1){
+		nbrePeriodes=2;
+	}
+	if (periode(date2)-periode(date1)==2){
+		nbrePeriodes=3;
+	}
+	return nbrePeriodes;
+}
+
+//donne le nombre de p\E9riodes entre le d\E9but de l'ann\E9e et le mois
+public static int periodeJanvierDebutMois(int month){
+	int nbrePeriodes=0;
+    nbrePeriodes=3*(month-1);
+	return nbrePeriodes;
+}
+
+//donne le nombre de p\E9riodes entre le mois et la fin de l'ann\E9e
+public static int periodeFinMoisDecembre(int month){
+	int nbrePeriodes=0;
+    nbrePeriodes=3*(12-month);
+	return nbrePeriodes;
+}
+
+// calcul du nombre de p\E9riodes entre deux dates
+public static int nbrePeriodes(int yearBegin,int monthBegin, int dayBegin, int yearEnd, int monthEnd, int dayEnd){
+	int nbPeriodes = 0;
 	
+	// disjonction de cas suivant le jour, le mois et l'ann\E9e				
+	if (yearEnd-yearBegin==0 && monthEnd==monthBegin){
+		nbPeriodes = periodeDeuxJours(dayBegin,dayEnd);
+	} else if (yearEnd-yearBegin==0 && !(monthEnd==monthBegin)){
+		nbPeriodes= periode(dayEnd)+(4-periode(dayBegin))+3*(monthEnd-monthBegin-1);
+	}
+
+    if (!(yearEnd-yearBegin==0)){
+    	nbPeriodes = (yearEnd-yearBegin-1)*36; // nbre p\E9riodes pour les ann\E9es interm\E9diaires
+    	nbPeriodes += periodeJanvierDebutMois(monthEnd)+periodeFinMoisDecembre(monthBegin); 
+    	nbPeriodes += periode(dayEnd)+(4-periode(dayBegin));
+    }
+    return nbPeriodes;
+}
+
+public static int[][] moisAnnee(int nbBarresHisto, int yearBegin,int monthBegin, int dayBegin){
+	int[][] datePeriode=new int[2][nbBarresHisto];
+	datePeriode[0][0]=yearBegin;
+	datePeriode[1][0]=monthBegin;
+	// si la premiere periode correspond a un premier tiers de mois
+	if (1<nbBarresHisto){
+		// si la premiere periode correspond a un premier tiers de mois
+		if (periode(dayBegin)%3==1){
+			for (int i=1; i<nbBarresHisto; i++){
+				if ((i%3==0 && (datePeriode[1][i-1]+1)%12==0)){
+					datePeriode[0][i]=datePeriode[0][i-1]+1;
+					datePeriode[1][i]=1;
+					} else if ((i%3==0 && !((datePeriode[1][i-1]+1)%12==0))){
+				    datePeriode[1][i]=datePeriode[1][i-1]+1;
+				    datePeriode[0][i]=datePeriode[0][i-1];
+					}
+				if (!(i%3==0)){
+					datePeriode[1][i]=datePeriode[1][i-1];
+				    datePeriode[0][i]=datePeriode[0][i-1];
+				}
+			}
+			
+		}
+		// si la premiere periode correspond a un deuxieme tiers de mois
+		if (periode(dayBegin)%3==2){
+			for (int i=1; i<nbBarresHisto; i++){
+				if ((i%3==1 && (datePeriode[1][i-1]+1)%12==0)){
+					datePeriode[0][i]=datePeriode[0][i-1]+1;
+					datePeriode[1][i]=1;
+					} else if ((i%3==0 && !((datePeriode[1][i-1]+1)%12==0))){
+				    datePeriode[1][i]=datePeriode[1][i-1]+1;
+				    datePeriode[0][i]=datePeriode[0][i-1];
+					}
+				if (!(i%3==1)){
+					datePeriode[1][i]=datePeriode[1][i-1];
+				    datePeriode[0][i]=datePeriode[0][i-1];
+				}
+			}
+			
+		}
+		// si la premiere periode correspond a un dernier tiers de mois
+		if (periode(dayBegin)%3==0){
+			for (int i=1; i<nbBarresHisto; i++){
+				if ((i%3==2 && (datePeriode[1][i-1]+1)%12==0)){
+					datePeriode[0][i]=datePeriode[0][i-1]+1;
+					datePeriode[1][i]=1;
+					} else if ((i%3==0 && !((datePeriode[1][i-1]+1)%12==0))){
+				    datePeriode[1][i]=datePeriode[1][i-1]+1;
+				    datePeriode[0][i]=datePeriode[0][i-1];
+					}
+				if (!(i%3==2)){
+					datePeriode[1][i]=datePeriode[1][i-1];
+				    datePeriode[0][i]=datePeriode[0][i-1];
+				}
+			}
+			
+		}
+	}
+	return datePeriode;
+}
+
 private static Map<String,Integer> calculePhenologie(Map<String,String> info) throws ParseException, SQLException {
 
 		DataSource ds = DB.getDataSource();
@@ -631,13 +754,12 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 		
 		Connection connection = ds.getConnection();
 		String statement = ""
-				+ "SELECT fiche.fiche_date,COUNT(observation.observation_id), espece.espece_nom FROM espece"
+				+ "SELECT fiche.fiche_date,observation.observation_id, espece.espece_nom FROM espece"
 				+ " INNER JOIN observation ON observation.observation_espece_espece_id = espece.espece_id "
 				+ " INNER JOIN fiche ON observation.observation_fiche_fiche_id = fiche.fiche_id "
 				+ " INNER JOIN espece_is_in_groupement_local ON (espece_is_in_groupement_local.espece_espece_id = espece.espece_id)"
 				+ " INNER JOIN groupe ON (groupe.groupe_id = espece_is_in_groupement_local.groupe_groupe_id)"
-				+ " WHERE fiche.fiche_date BETWEEN ? AND ?"
-				+ " GROUP BY espece.espece_nom, fiche.fiche_date"
+				+ " WHERE observation.observation_validee = 1 AND fiche.fiche_date BETWEEN ? AND ?"
 				+ " ORDER BY fiche.fiche_date";
 		
 		if ((info.get("sous_groupe") != null) && (! info.get("sous_groupe").equals(""))) {
@@ -657,51 +779,69 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 		setParams(phenologie, listeParams);		
 		ResultSet rs = phenologie.executeQuery();
 		
-		// début copie historique
-		/*ArrayList<String> dateTemoignage = new ArrayList<>();
+
+		ArrayList<String[]> dateTemoignage = new ArrayList<>();
+		
 		while(rs.next()) {
 			String date = rs.getString("fiche.fiche_date");
 			if (! date.equals(null)) {
 				char[] dateCharArray = date.toCharArray();
 				String yearString = "";
+				String monthString ="";
+				String dayString = "";
+				String[] monTableauDate=new String[3];
 				yearString += dateCharArray[0];
 				yearString += dateCharArray[1];
 				yearString += dateCharArray[2];
 				yearString += dateCharArray[3];
-				dateTemoignage.add(yearString);
+				monthString += dateCharArray[5];
+				monthString += dateCharArray[6];
+				dayString += dateCharArray[8];
+				dayString += dateCharArray[9];
+				monTableauDate[0]=yearString;
+				monTableauDate[1]=monthString;
+				monTableauDate[2]=dayString;
+				dateTemoignage.add(monTableauDate);
 			}
 		}
 		
-		int nbTem = yearTemoignages.size();
-		int yearMin = Integer.parseInt(dateTemoignage.get(0));
-		int yearMax = Integer.parseInt(dateTemoignage.get(nbTem-1));
+		// on stocke les valeurs des jours et mois de d\E9but et de fin.
+		int nbTem = dateTemoignage.size();
+		int yearBegin = Integer.parseInt(dateTemoignage.get(0)[0]);
+		int yearEnd = Integer.parseInt(dateTemoignage.get(nbTem-1)[0]);
+		int monthBegin = Integer.parseInt(dateTemoignage.get(0)[1]);
+		int monthEnd = Integer.parseInt(dateTemoignage.get(nbTem-1)[1]);
+		int dayBegin = Integer.parseInt(dateTemoignage.get(0)[2]);
+		int dayEnd = Integer.parseInt(dateTemoignage.get(nbTem-1)[2]);
 		
 		int nbBarresHisto = 0;
-		if((yearMax-yearMin) % 20 == 0){
-			nbBarresHisto = (yearMax-yearMin)/20;
-		}else{
-			nbBarresHisto = ((yearMax-yearMin)/20 + 1);
-		}
+		nbBarresHisto=nbrePeriodes(yearBegin,monthBegin,dayBegin,yearEnd,monthEnd,dayEnd);
 		
 		int[] histogrammeData = new int[nbBarresHisto];
 		int year;
-		for (String str : dateTemoignage) {
-			year = Integer.parseInt(str);
-			histogrammeData[(year-yearMin)/20]++;
+		int month;
+		int day;
+		int numPeriode;
+		// on entre les donnees dans l'histogramme
+		for (String[] str : dateTemoignage) {
+			year = Integer.parseInt(str[0]);
+			month = Integer.parseInt(str[1]);
+			day = Integer.parseInt(str[2]);
+			numPeriode=nbrePeriodes(yearBegin,monthBegin,dayBegin,year,month,day);
+			histogrammeData[numPeriode-1]++;
 		}
 		
 		Map<String,Integer> histogramme = new HashMap<>();
+		// creation de la legende de l'histogramme
+		String[] legende=new String[nbBarresHisto];
+		int[][] intermediaireLegende=new int[2][nbBarresHisto];
+		intermediaireLegende=moisAnnee(nbBarresHisto,yearBegin,monthBegin,dayBegin);
+		for (int i=0; i<nbBarresHisto; i++){
+			legende[i] = ""+intermediaireLegende[0][i]+"-"+intermediaireLegende[1][i]+"-"+i;
+			histogramme.put(legende[i], histogrammeData[i]);
+		}
 		
-		int yearTempMin;
-		int yearTempMax;
-		for (int i=0; i<nbBarresHisto; i++) {
-			yearTempMin = yearMin+i*20;
-			yearTempMax = yearMin+i*20+19;
-			String legende = ""+yearTempMin+"-"+yearTempMax;
-			histogramme.put(legende, histogrammeData[i]);
-		}*/
-		// fin copie historique
-		Map<String,Integer> histogramme = new HashMap<>();
+		
 		connection.close();
 		
 		return histogramme;
