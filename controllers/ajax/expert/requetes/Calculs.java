@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -623,7 +624,7 @@ private static HashMap<UTMS,Integer> calculeCarteDesObservations(Map<String,Stri
 * @return
 */
 
-// methode de calcul de periode pour une date. Methode utilis\E9e dans ph\E9nologie.
+// methode de calcul de periode pour une date. Methode utilisee dans phenologie.
 public static int periode(int date){
 	int periode=0;
 	if (date<=10){
@@ -638,7 +639,7 @@ public static int periode(int date){
 	return periode;
 }
 
-// donne le nombre de p\E9riodes entre deux jours du m\EAme mois
+// donne le nombre de periodes entre deux jours du meme mois
 public static int periodeDeuxJours(int date1,int date2){
 	int nbrePeriodes=0;
 	if (periode(date1)==periode(date2)){
@@ -653,25 +654,25 @@ public static int periodeDeuxJours(int date1,int date2){
 	return nbrePeriodes;
 }
 
-//donne le nombre de p\E9riodes entre le d\E9but de l'ann\E9e et le mois
+//donne le nombre de periodes entre le debut de l'annee et le mois
 public static int periodeJanvierDebutMois(int month){
 	int nbrePeriodes=0;
     nbrePeriodes=3*(month-1);
 	return nbrePeriodes;
 }
 
-//donne le nombre de p\E9riodes entre le mois et la fin de l'ann\E9e
+//donne le nombre de periodes entre le mois et la fin de l'annee
 public static int periodeFinMoisDecembre(int month){
 	int nbrePeriodes=0;
     nbrePeriodes=3*(12-month);
 	return nbrePeriodes;
 }
 
-// calcul du nombre de p\E9riodes entre deux dates
+// calcul du nombre de periodes entre deux dates
 public static int nbrePeriodes(int yearBegin,int monthBegin, int dayBegin, int yearEnd, int monthEnd, int dayEnd){
 	int nbPeriodes = 0;
 	
-	// disjonction de cas suivant le jour, le mois et l'ann\E9e				
+	// disjonction de cas suivant le jour, le mois et l'annee				
 	if (yearEnd-yearBegin==0 && monthEnd==monthBegin){
 		nbPeriodes = periodeDeuxJours(dayBegin,dayEnd);
 	} else if (yearEnd-yearBegin==0 && !(monthEnd==monthBegin)){
@@ -679,7 +680,7 @@ public static int nbrePeriodes(int yearBegin,int monthBegin, int dayBegin, int y
 	}
 
     if (!(yearEnd-yearBegin==0)){
-    	nbPeriodes = (yearEnd-yearBegin-1)*36; // nbre p\E9riodes pour les ann\E9es interm\E9diaires
+    	nbPeriodes = (yearEnd-yearBegin-1)*36; // nbre periodes pour les annees intermediaires
     	nbPeriodes += periodeJanvierDebutMois(monthEnd)+periodeFinMoisDecembre(monthBegin); 
     	nbPeriodes += periode(dayEnd)+(4-periode(dayBegin));
     }
@@ -759,8 +760,7 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 				+ " INNER JOIN fiche ON observation.observation_fiche_fiche_id = fiche.fiche_id "
 				+ " INNER JOIN espece_is_in_groupement_local ON (espece_is_in_groupement_local.espece_espece_id = espece.espece_id)"
 				+ " INNER JOIN groupe ON (groupe.groupe_id = espece_is_in_groupement_local.groupe_groupe_id)"
-				+ " WHERE observation.observation_validee = 1 AND fiche.fiche_date BETWEEN ? AND ?"
-				+ " ORDER BY fiche.fiche_date";
+				+ " WHERE observation.observation_validee = 1";
 		
 		if ((info.get("sous_groupe") != null) && (! info.get("sous_groupe").equals(""))) {
 			statement += " AND groupe.groupe_id = ?";
@@ -770,16 +770,71 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 			listeParams.add(info.get("groupe"));
 		}
 
-		Calendar date1 = getDataDate1(info);
-		Calendar date2 = getDataDate2(info);
-		listeParams.add(new java.sql.Date(date1.getTimeInMillis()));
-		listeParams.add(new java.sql.Date(date2.getTimeInMillis()));
+		if (! info.get("periode").equals("all")) {
+			statement += " AND fiche.fiche_date BETWEEN ? AND ?";
+
+			Calendar date1 = getDataDate1(info);
+			Calendar date2 = getDataDate2(info);
+			listeParams.add(new java.sql.Date(date1.getTimeInMillis()));
+			listeParams.add(new java.sql.Date(date2.getTimeInMillis()));
+		}
+		
+		statement += " ORDER BY fiche.fiche_date";
 		
 		PreparedStatement phenologie = connection.prepareStatement(statement); 
 		setParams(phenologie, listeParams);		
 		ResultSet rs = phenologie.executeQuery();
 		
-
+		Map<String,Integer> histogramme = new HashMap<>();
+		
+		SimpleDateFormat date_format = new SimpleDateFormat("yyyy-MM-dd");
+		// on initialise deux objets à la date actuelle (modification plus tard)
+        Calendar dateDebutPeriode = Calendar.getInstance();
+        Calendar dateFinPeriode = Calendar.getInstance();
+		
+        boolean periode1 = true; // permet de savoir si on est dans la première itération du while suivant
+        int nbTem = 0;
+        String legende = "";
+		while(rs.next()) {
+			Date date = rs.getDate("fiche.fiche_date");
+			if (periode1) {
+				// on modifie dateDebutPeriode et dateFinPeriode
+				if (!info.get("periode").equals("all")) {
+					// si une période est renseignée par l'utilisateur, dateDebutPeriode correspond à la date de début demandée par l'utilisateur
+					dateDebutPeriode.setTime(getDataDate1(info).getTime());
+					dateFinPeriode.setTime(getDataDate1(info).getTime());
+					dateFinPeriode.add(Calendar.DATE, 10);
+				}
+				else {
+					// si aucune période n'est renseignée par l'utilisateur, il faut prendre la date du 1er témoignage
+					dateDebutPeriode.setTime(date);
+			        dateFinPeriode.setTime(date);
+			        dateFinPeriode.add(Calendar.DATE, 10);
+				}
+		        legende = date_format.format(dateDebutPeriode.getTime())+" - "+date_format.format(dateFinPeriode.getTime());
+		        nbTem = 0;
+		        histogramme.put(legende, nbTem);
+		        periode1 = false;
+			}
+			// disjonction de cas selon que la date du témoignage est après ou avant dateFinPeriode
+			if (!date.after(dateFinPeriode.getTime())) {
+				nbTem++;
+			}
+			else {
+				// on met à jour dateDebutPeriode et dateFinPeriode
+				dateFinPeriode.add(Calendar.DATE, 1);
+				dateDebutPeriode.setTime(dateFinPeriode.getTime());
+				dateFinPeriode.setTime(dateDebutPeriode.getTime());
+				dateFinPeriode.add(Calendar.DATE, 10);
+				// on met à jour la légende
+		        legende = date_format.format(dateDebutPeriode.getTime())+" - "+date_format.format(dateFinPeriode.getTime());
+		        // on ré-initialise le nombre de témoignages
+		        nbTem = 0;
+			}
+			histogramme.put(legende, nbTem);
+		}
+		
+		/*
 		ArrayList<String[]> dateTemoignage = new ArrayList<>();
 		
 		while(rs.next()) {
@@ -805,7 +860,7 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 			}
 		}
 		
-		// on stocke les valeurs des jours et mois de d\E9but et de fin.
+		// on stocke les valeurs des jours et mois de debut et de fin.
 		int nbTem = dateTemoignage.size();
 		int yearBegin = Integer.parseInt(dateTemoignage.get(0)[0]);
 		int yearEnd = Integer.parseInt(dateTemoignage.get(nbTem-1)[0]);
@@ -840,7 +895,7 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 			legende[i] = ""+intermediaireLegende[0][i]+"-"+intermediaireLegende[1][i]+"-"+i;
 			histogramme.put(legende[i], histogrammeData[i]);
 		}
-		
+		*/
 		
 		connection.close();
 		
