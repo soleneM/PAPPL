@@ -60,19 +60,19 @@ public class HistogrammeExportExcel extends Excel{
 		return(theFile);
 	}
 	
-	// méthode pour exporter dans un excel l'histogramme de phénologie
+	// methode pour exporter dans un excel l'histogramme de phenologie
 	public static HistogrammeExportExcel phenologie(Map<String,String> info, Map<String,Integer> histogrammePhenologie) throws IOException, SQLException{
 		HistogrammeExportExcel theFile = new HistogrammeExportExcel();
 		
 		Sheet sheet = theFile.wb.createSheet("Phenologie");
-		String titre = "Historique par décade du nombre de témoignages pour une groupe donné";
-		// ajout de la période dans le titre
+		String titre = "Historique par decade du nombre de temoignages pour un groupe donne";
+		// ajout de la periode dans le titre
 		if (! info.get("periode").equals("all")) {
 			String date1 = info.get("jour1")+"/"+info.get("mois1")+"/"+info.get("annee1");
 			String date2 = info.get("jour2")+"/"+info.get("mois2")+"/"+info.get("annee2");
 			titre+=" du "+date1+" au "+date2;
 		}
-		// ajout du groupe/sous-groupe/espèce dans le titre
+		// ajout du groupe/sous-groupe/espece dans le titre
 		if (! info.get("espece").equals("")) {
 			titre+=" pour l'espece "+info.get("espece");
 		} else if (! info.get("sous_groupe").equals("")) {

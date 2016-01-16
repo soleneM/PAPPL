@@ -657,7 +657,7 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 		setParams(phenologie, listeParams);		
 		ResultSet rs = phenologie.executeQuery();
 		
-		// début copié historique
+		// dÃ©but copie historique
 		/*ArrayList<String> dateTemoignage = new ArrayList<>();
 		while(rs.next()) {
 			String date = rs.getString("fiche.fiche_date");
@@ -700,7 +700,7 @@ private static Map<String,Integer> calculePhenologie(Map<String,String> info) th
 			String legende = ""+yearTempMin+"-"+yearTempMax;
 			histogramme.put(legende, histogrammeData[i]);
 		}*/
-		// fin copié historique
+		// fin copie historique
 		Map<String,Integer> histogramme = new HashMap<>();
 		connection.close();
 		
