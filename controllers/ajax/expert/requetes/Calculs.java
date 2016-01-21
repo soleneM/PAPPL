@@ -313,7 +313,7 @@ public class Calculs extends Controller {
 			statement += " AND groupe.groupe_id = ?";
 			listeParams.add(info.get("sous_groupe"));
 		} else if ((info.get("groupe") != null) && (!info.get("groupe").equals(""))) {
-			statement += " AND groupe.groupe.pere_groupe_id = ?";
+			statement += " AND groupe.groupe_pere_groupe_id = ?";
 			listeParams.add(info.get("groupe"));
 		}
 
@@ -375,10 +375,17 @@ public class Calculs extends Controller {
 			statement += "SELECT utms.utm";
 			break;
 		}
-		statement += ", COUNT(espece.espece_id) as nbespeces" + " FROM groupe "
-				+ " INNER JOIN espece_is_in_groupement_local ON (groupe.groupe_id = espece_is_in_groupement_local.groupe_groupe_id)"
-				+ " INNER JOIN espece ON (espece_is_in_groupement_local.espece_espece_id = espece.espece_id)"
-				+ " INNER JOIN observation ON (espece.espece_id = observation.observation_espece_espece_id)"
+		statement += ", COUNT(DISTINCT espece.espece_id) as nbespeces" + " FROM espece";
+		
+		if ((info.get("sous_groupe") != null) && (!info.get("sous_groupe").equals(""))) {
+			statement += " INNER JOIN espece_is_in_groupement_local ON (espece.espece_id = espece_is_in_groupement_local.espece_espece_id)"
+				+ " INNER JOIN groupe ON (espece_is_in_groupement_local.groupe_groupe_id = groupe.groupe_id)";
+		} else if ((info.get("groupe") != null) && (!info.get("groupe").equals(""))) {
+			statement += " INNER JOIN espece_is_in_groupement_local ON (espece.espece_id = espece_is_in_groupement_local.espece_espece_id)"
+				+ " INNER JOIN groupe ON (espece_is_in_groupement_local.groupe_groupe_id = groupe.groupe_id)";
+		}
+		
+		statement += " INNER JOIN observation ON (espece.espece_id = observation.observation_espece_espece_id)"
 				+ " INNER JOIN fiche ON (observation.observation_fiche_fiche_id = fiche.fiche_id)"
 				+ " INNER JOIN utms ON (fiche.fiche_utm_utm = utms.utm)" + " WHERE observation.observation_validee = 1";
 
@@ -493,7 +500,7 @@ public class Calculs extends Controller {
 
 		ArrayList<Object> listeParams = new ArrayList<Object>();
 
-		String statement = "" + "SELECT e.espece_nom as espece_nom, count(f.fiche_utm_utm) as cpt FROM observation obs "
+		String statement = "" + "SELECT e.espece_nom as espece_nom, count(DISTINCT f.fiche_utm_utm) as cpt FROM observation obs "
 				+ "INNER JOIN fiche f ON obs.observation_fiche_fiche_id = f.fiche_id "
 				+ "INNER JOIN espece e ON obs.observation_espece_espece_id = e.espece_id "
 				+ "WHERE obs.observation_validee = 1";
@@ -577,7 +584,7 @@ public class Calculs extends Controller {
 		ArrayList<Object> listeParams = new ArrayList<Object>();
 		String statement = "";
 
-		statement += "SELECT utms.utm, espece.espece_nom" + " FROM espece_is_in_groupement_local"
+		statement += "SELECT DISTINCT utms.utm, espece.espece_nom" + " FROM espece_is_in_groupement_local"
 				+ " INNER JOIN espece ON (espece_is_in_groupement_local.espece_espece_id = espece.espece_id)"
 				+ " INNER JOIN observation ON (espece.espece_id = observation.observation_espece_espece_id)"
 				+ " INNER JOIN fiche ON (observation.observation_fiche_fiche_id = fiche.fiche_id)"
@@ -628,7 +635,7 @@ public class Calculs extends Controller {
 		ArrayList<Object> listeParams = new ArrayList<Object>();
 		String statement = "";
 
-		statement += "SELECT utms.utm, COUNT(espece.espece_id) as nbespeces" + " FROM espece_is_in_groupement_local"
+		statement += "SELECT utms.utm, COUNT(DISTINCT espece.espece_id) as nbespeces" + " FROM espece_is_in_groupement_local"
 				+ " INNER JOIN espece ON (espece_is_in_groupement_local.espece_espece_id = espece.espece_id)"
 				+ " INNER JOIN observation ON (espece.espece_id = observation.observation_espece_espece_id)"
 				+ " INNER JOIN fiche ON (observation.observation_fiche_fiche_id = fiche.fiche_id)"
